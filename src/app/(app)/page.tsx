@@ -17,6 +17,8 @@ import Footer from "@/components/app/Footer";
 import About from "@/assets/image/banner/about.png";
 import profile from "@/assets/image/profile/jon.jpg";
 import WoodWork from "@/assets/image/logo/woodWork.png";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import HomeHeroClint from "@/components/clint-components/home/HomeHeroClint";
 
 const testimonials = [
     {
@@ -75,10 +77,22 @@ const logos = [
     // { id: "11", src: "/images/logos/woodwork-saw-badge.png", alt: "Woodwork" },
 ];
 
-export default function Home() {
+export default async function Home() {
+
+    const queryClient = new QueryClient();
+
+    await queryClient.prefetchQuery({
+        queryKey: ["banner"], // <-- confirm this matches useGetBanner()'s key
+        queryFn: async () => {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sections/banner`);
+            if (!res.ok) throw new Error("Failed to fetch banner");
+            return res.json();
+        },
+    });
+
     return (
-        <>
-            <Hero imageSrc={Banner} />
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <HomeHeroClint />
             <WoodFurnitureBanner
                 imageSrc={SoodFurniture}
                 title="Wood Furniture"
@@ -182,6 +196,8 @@ export default function Home() {
             {/* <LogoMarquee logos={logos} />    */}
 
             <Footer />
-        </>
+        </HydrationBoundary>
+
+
     );
 }

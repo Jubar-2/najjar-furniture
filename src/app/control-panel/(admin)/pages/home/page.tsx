@@ -1,5 +1,6 @@
 import About from "@/components/control-panel/pages/home/About";
 import Banner from "@/components/control-panel/pages/home/Banner";
+import GalleryAdmin from "@/components/control-panel/pages/home/GalleryControl";
 import PageTabs from "@/components/control-panel/pages/PageTabs";
 
 export default function PagesHome() {
@@ -10,6 +11,7 @@ export default function PagesHome() {
                 <PageTabs
                     tabs={[
                         { key: "banner", label: "Banner", content: <Banner /> },
+                        { key: "gallery", label: "Gallery", content: <GalleryAdmin /> },
                         { key: "about", label: "About", content: <About /> },
                         { key: "settings", label: "Settings", content: <SettingsLayer /> },
                     ]}

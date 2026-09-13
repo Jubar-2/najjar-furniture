@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ImageUpload from "@/components/control-panel/pages/ImageUpload";
-import { useGetBanner, useUpdateBanner } from "@/app/customHooks/getBanner";
+import { useGetBanner, useUpdateBanner } from "@/customHooks/getBanner";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";

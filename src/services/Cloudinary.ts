@@ -12,7 +12,7 @@ cloudinary.config({
  * from an incoming request) to Cloudinary, then removes the local copy
  * regardless of whether the upload succeeded or failed.
  */
-export async function uploadOnCloudinary(file: File) {
+export async function uploadOnCloudinary(file: File): Promise<UploadApiResponse | undefined> {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
