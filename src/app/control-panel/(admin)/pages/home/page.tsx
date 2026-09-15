@@ -1,6 +1,8 @@
 import About from "@/components/control-panel/pages/home/About";
 import Banner from "@/components/control-panel/pages/home/Banner";
 import GalleryAdmin from "@/components/control-panel/pages/home/GalleryControl";
+import HomeLayersAdmin from "@/components/control-panel/pages/home/HomeLayersAdmin";
+import PortfolioAdmin from "@/components/control-panel/pages/home/PortfolioAdmin";
 import PageTabs from "@/components/control-panel/pages/PageTabs";
 
 export default function PagesHome() {
@@ -11,7 +13,9 @@ export default function PagesHome() {
                 <PageTabs
                     tabs={[
                         { key: "banner", label: "Banner", content: <Banner /> },
+                         { key: "home-layers", label: "Home Layers", content: <HomeLayersAdmin /> },
                         { key: "gallery", label: "Gallery", content: <GalleryAdmin /> },
+                        { key: "portfolio", label: "Portfolio", content: <PortfolioAdmin /> },
                         { key: "about", label: "About", content: <About /> },
                         { key: "settings", label: "Settings", content: <SettingsLayer /> },
                     ]}

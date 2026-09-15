@@ -16,3 +16,17 @@ export const HeroSchema = z.object({
 });
 
 export type Hero = z.infer<typeof HeroSchema>;
+
+export const HeroUpdatedSchema = z.object({
+    heading: z.string("Heading is must be string.").optional(),
+    paragraph: z.string("Heading is must be string.").optional(),
+    banner: z.any()
+        .refine((file) => file instanceof File, "Please upload a screenshot of your work.")
+        .refine((file) => file?.size <= MAX_FILE_SIZE, "Screenshot must be smaller than 5MB.")
+        .refine(
+            (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
+            "Only .jpg, .jpeg, and .png formats are accepted."
+        ).optional(),
+});
+
+export type HeroUpdated = z.infer<typeof HeroUpdatedSchema>;

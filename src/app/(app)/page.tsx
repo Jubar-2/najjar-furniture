@@ -1,203 +1,118 @@
-import Hero from "@/components/app/home/Hero";
-import Banner from "../../assets/image/banner/banner.jpg";
-import WoodFurnitureBanner from "@/components/app/home/WoodFurnitureBanner";
-import SoodFurniture from "@/assets/image/product/wood-furniture.png";
-import ProductFeatureSplit from "@/components/app/home/Productfeaturesplit";
-import Gallery from "@/components/app/home/Gallery";
-import PortfolioShowcase from "@/components/control-panel/pages/home/Portfolioshowcase";
-import Bad01 from "@/assets/image/product/bad01.png";
-import portfolio0 from "@/assets/image/product/port0.png";
-import portfolio1 from "@/assets/image/product/port1.png";
-import portfolio2 from "@/assets/image/product/port2.png";
-import portfolio3 from "@/assets/image/product/port3.png";
-import AboutUs from "@/components/app/home/AboutUs";
-import TestimonialsSlider from "@/components/app/home/TestimonialsSlider";
-import LogoMarquee from "@/components/app/home/LogoMarquee";
-import Footer from "@/components/app/Footer";
-import About from "@/assets/image/banner/about.png";
-import profile from "@/assets/image/profile/jon.jpg";
-import WoodWork from "@/assets/image/logo/woodWork.png";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import { headers } from "next/headers";
+
 import HomeHeroClint from "@/components/clint-components/home/HomeHeroClint";
+import HomeLayersClient from "@/components/clint-components/home/HomeLayersClient";
+import HomeGalleryClient from "@/components/clint-components/home/HomeGalleryClient";
+import HomePortfolioClient from "@/components/clint-components/home/HomePortfolioClient";
+import HomeTestimonialsClient from "@/components/clint-components/home/HomeTestimonialsClient";
+import HomeLayer3Client from "@/components/clint-components/home/HomeLayer3Client";
+import AboutUs from "@/components/app/home/AboutUs";
+import Footer from "@/components/app/Footer";
 
-const testimonials = [
-    {
-        id: "1",
-        quote: "Najjar Furniture exceeded my expectations! The quality, finish, and attention to detail are truly outstanding. My living room has never looked better.",
-        rating: 5,
-        name: "MD. Rashed Ahmed",
-        location: "Khulna, Bangladesh",
-        avatarSrc: profile,
-    },
-    {
-        id: "2",
-        quote: "Najjar Furniture exceeded my expectations! The quality, finish, and attention to detail are truly outstanding.",
-        rating: 5,
-        name: "Mrs. Fatema Khatun",
-        location: "Dhaka, Bangladesh",
-        avatarSrc: profile,
-    },
-    {
-        id: "3",
-        quote: "Najjar Furniture exceeded my expectations! The quality, finish, and attention to detail are truly outstanding. My living room has never looked better.",
-        rating: 5,
-        name: "Mrs. Fatema Khatun",
-        location: "Dhaka, Bangladesh",
-        avatarSrc: profile,
-    },
-    {
-        id: "4",
-        quote: "Najjar Furniture exceeded my expectations! The quality, finish, and attention to detail are truly outstanding. My living room has never looked better.",
-        rating: 5,
-        name: "Mrs. Fatema Khatun",
-        location: "Dhaka, Bangladesh",
-        avatarSrc: profile,
-    },
-    {
-        id: "5",
-        quote: "Najjar Furniture exceeded my expectations! The quality, finish, and attention to detail are truly outstanding. My living room has never looked better.",
-        rating: 5,
-        name: "Mrs. Fatema Khatun",
-        location: "Dhaka, Bangladesh",
-        avatarSrc: profile,
-    },
-];
+import About from "@/assets/image/banner/about.png";
 
-const logos = [
-    { id: "1", src: WoodWork, alt: "Woodwork" },
-    // { id: "2", src: "/images/logos/wooden-1.png", alt: "Wooden" },
-    // { id: "3", src: "/images/logos/wood-work-badge.png", alt: "Wood Work" },
-    // { id: "4", src: "/images/logos/woodwork-saw.png", alt: "Woodwork" },
-    // { id: "5", src: "/images/logos/woodwork-2.png", alt: "Woodwork Premium Quality" },
-    // { id: "6", src: "/images/logos/wooden-2.png", alt: "Wooden" },
-    // { id: "7", src: "/images/logos/wood-work-ring.png", alt: "Wood Work" },
-    // { id: "8", src: "/images/logos/woodwork-badge-1.png", alt: "Woodwork" },
-    // { id: "9", src: "/images/logos/woodwork-badge-2.png", alt: "Woodwork Premium Quality" },
-    // { id: "10", src: "/images/logos/wooden-3.png", alt: "Wooden" },
-    // { id: "11", src: "/images/logos/woodwork-saw-badge.png", alt: "Woodwork" },
-];
+import { HOME_HERO_QUERY_KEY } from "@/customHooks/getBanner";
+import { HOME_LAYER1_QUERY_KEY } from "@/customHooks/useHomeLayer1";
+import { HOME_LAYER2_QUERY_KEY } from "@/customHooks/useHomeLayer2";
+import { HOME_LAYER3_QUERY_KEY } from "@/customHooks/useHomeLayer3";
+import { HOME_PORTFOLIO_QUERY_KEY } from "@/customHooks/usePortfolio";
+import { HOME_TESTIMONIALS_QUERY_KEY } from "@/customHooks/useTestimonials";
+import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildMetadata(await getPageMeta("home"));
+}
+
+// Resolve the base URL for server-side fetching from request headers
+async function getBaseUrl() {
+    const hdrs = await headers();
+    const host = hdrs.get("host") ?? "localhost:3000";
+    const proto = hdrs.get("x-forwarded-proto") ?? "http";
+    return `${proto}://${host}`;
+}
+
+async function serverFetch(baseUrl: string, path: string) {
+    try {
+        const res = await fetch(`${baseUrl}${path}`, { cache: "no-store" });
+        if (!res.ok) return null;
+        const json = await res.json();
+        return json.data?.content ?? json.data ?? null;
+    } catch {
+        return null;
+    }
+}
 
 export default async function Home() {
-
+    const baseUrl = await getBaseUrl();
     const queryClient = new QueryClient();
 
-    await queryClient.prefetchQuery({
-        queryKey: ["banner"], // <-- confirm this matches useGetBanner()'s key
-        queryFn: async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sections/banner`);
-            if (!res.ok) throw new Error("Failed to fetch banner");
-            return res.json();
-        },
-    });
+    // Prefetch all home page sections in parallel on the server
+    await Promise.allSettled([
+        queryClient.prefetchQuery({
+            queryKey: HOME_HERO_QUERY_KEY,
+            queryFn: () => serverFetch(baseUrl, "/api/page/home/hero"),
+        }),
+        queryClient.prefetchQuery({
+            queryKey: HOME_LAYER1_QUERY_KEY,
+            queryFn: () => serverFetch(baseUrl, "/api/control-panel/page/home/layer1"),
+        }),
+        queryClient.prefetchQuery({
+            queryKey: HOME_LAYER2_QUERY_KEY,
+            queryFn: () => serverFetch(baseUrl, "/api/control-panel/page/home/layer2"),
+        }),
+        queryClient.prefetchQuery({
+            queryKey: HOME_LAYER3_QUERY_KEY,
+            queryFn: () => serverFetch(baseUrl, "/api/control-panel/page/home/layer3"),
+        }),
+        queryClient.prefetchQuery({
+            queryKey: HOME_PORTFOLIO_QUERY_KEY,
+            queryFn: () => serverFetch(baseUrl, "/api/control-panel/page/home/portfolio"),
+        }),
+        queryClient.prefetchQuery({
+            queryKey: HOME_TESTIMONIALS_QUERY_KEY,
+            queryFn: async () => {
+                try {
+                    const res = await fetch(`${baseUrl}/api/control-panel/testimonials`, {
+                        cache: "no-store",
+                    });
+                    if (!res.ok) return [];
+                    const json = await res.json();
+                    return json.data ?? [];
+                } catch {
+                    return [];
+                }
+            },
+        }),
+    ]);
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
+            {/* Hero — dynamic from DB */}
             <HomeHeroClint />
-            <WoodFurnitureBanner
-                imageSrc={SoodFurniture}
-                title="Wood Furniture"
-                description="Premium handcrafted wooden furniture, designed with precision and made to last."
-                backgroundColor="bg-[#F2EBE0B2]"
-                textColor="text-[#000000]"
-                headingColor="text-[#462514]"
-            />
 
-            <WoodFurnitureBanner
-                imageSrc={SoodFurniture}
-                backgroundColor="bg-[#6161613D]"
-                title="Our Collection"
-                description="Explore our collection of timeless wooden furniture, crafted with quality, elegance, and attention to detail."
-                textColor="text-[#000000]"
-                headingColor="text-[#462514]"
-            />
+            {/* Layer 1 & 2 banners — dynamic from DB */}
+            <HomeLayersClient />
 
-            <ProductFeatureSplit
-                left={{
-                    imageSrc: { Bad01 },
-                    imageAlt: "Shaker raised panel bed",
-                    title: "Shaker Raised Panel Bed",
-                    description:
-                        "It features an antique honey or walnut finish, traditional iron ring pull handles.",
-                    ctaHref: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-vylPCtd8OoyvQAY9dZbChqcJua89iV0oDaV_RsZX-SLDiCzishZmulU&s=10",
-                    background: "bg-[linear-gradient(134.76deg,#B2B2B2_-7.4%,rgba(255,255,255,0.76)_108.48%)]",
-                }}
-                right={{
-                    imageSrc: "/images/wave-front-chest.png",
-                    imageAlt: "3-drawer wave-front accent chest",
-                    title: "3-Drawer Wave-Front Accent Chest",
-                    description:
-                        "It features an antique honey or walnut finish, traditional iron ring pull handles.",
-                    ctaHref: "/products/wave-front-accent-chest",
-                    background: "bg-[linear-gradient(225.14deg,rgba(199,76,12,0.36)_-13.4%,rgba(255,255,255,0.41)_103.09%)]",
-                }}
-            />
+            {/* Product feature splits — dynamic from DB (layer 3) */}
+            <HomeLayer3Client />
 
-            <ProductFeatureSplit
-                left={{
-                    imageSrc: "/images/shaker-bed.png",
-                    imageAlt: "Our Collection",
-                    title: "Our Collection",
-                    description:
-                        "It features an antique honey or walnut finish, traditional iron ring pull handles.",
-                    ctaHref: "/products/shaker-raised-panel-bed",
-                    background: "bg-[#F6CFCF]",
-                }}
-                right={{
-                    imageSrc: "/images/wave-front-chest.png",
-                    imageAlt: "3-drawer wave-front accent chest",
-                    title: "3-Drawer Wave-Front Accent Chest",
-                    description:
-                        "It features an antique honey or walnut finish, traditional iron ring pull handles.",
-                    ctaHref: "/products/wave-front-accent-chest",
-                    background: "bg-[#DEFAFB]",
-                }}
-            />
+            {/* Gallery — dynamic from DB */}
+            <HomeGalleryClient />
 
-            <ProductFeatureSplit
-                left={{
-                    imageSrc: "/images/shaker-bed.png",
-                    imageAlt: "Shaker raised panel bed",
-                    title: "Shaker Raised Panel Bed",
-                    description:
-                        "It features an antique honey or walnut finish, traditional iron ring pull handles.",
-                    ctaHref: "/products/shaker-raised-panel-bed",
-                    background: "bg-[linear-gradient(134.76deg,#E5E5E5_-7.4%,rgba(0,98,210,0.3)_108.48%)]",
-                }}
-                right={{
-                    imageSrc: "/images/wave-front-chest.png",
-                    imageAlt: "3-drawer wave-front accent chest",
-                    title: "3-Drawer Wave-Front Accent Chest",
-                    description:
-                        "It features an antique honey or walnut finish, traditional iron ring pull handles.",
-                    ctaHref: "/products/wave-front-accent-chest",
-                    background: "bg-[linear-gradient(135.6deg,#FFFFFF_2.35%,rgba(210,122,0,0.53)_120.28%)]",
-                }}
-            />
+            {/* Portfolio showcase — dynamic from DB */}
+            <HomePortfolioClient />
 
-            <Gallery />
-
-            <PortfolioShowcase
-                images={[
-                    { src: portfolio0, alt: "Wooden staircase and living room", href: "/portfolio/1", width: "w-[220px]" },
-                    { src: portfolio1, alt: "Handcrafted wooden sofa", href: "/portfolio/2", width: 379 },
-                    { src: portfolio2, alt: "Living room armchairs", href: "/portfolio/3", width: 300 },
-                    { src: portfolio3, alt: "Round wooden dining table", href: "/portfolio/4", width: 300 },
-                ]}
-            />
-
+            {/* About Us (static) */}
             <AboutUs imageSrc={About} />
 
-            <TestimonialsSlider
-                testimonials={testimonials}
-                title="Our Testimonials"
-                description="We take pride in delivering furniture that not only looks beautiful but also brings comfort and lasting value to our clients."
-            />
+            {/* Testimonials — dynamic from DB */}
+            <HomeTestimonialsClient />
 
-            {/* <LogoMarquee logos={logos} />    */}
+            {/* <LogoMarquee logos={logos} /> */}
 
             <Footer />
         </HydrationBoundary>
-
-
     );
 }

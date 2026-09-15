@@ -1,6 +1,12 @@
 import PageBanner from "@/components/app/PageBanner";
 import Container from "@/components/utils/Container";
 import Footer from "@/components/app/Footer";
+import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildMetadata(await getPageMeta("terms-conditions"));
+}
 
 const LAST_UPDATED = "September 10, 2026";
 

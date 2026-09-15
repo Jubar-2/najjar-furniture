@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 
 type BreakpointMode = "min" | "max"
 
@@ -14,24 +14,23 @@ export function useIsBreakpoint(
   mode: BreakpointMode = "max",
   breakpoint = 768
 ) {
-  const [matches, setMatches] = useState<boolean | undefined>(undefined)
+  const query =
+    mode === "min"
+      ? `(min-width: ${breakpoint}px)`
+      : `(max-width: ${breakpoint - 1}px)`
 
-  useEffect(() => {
-    const query =
-      mode === "min"
-        ? `(min-width: ${breakpoint}px)`
-        : `(max-width: ${breakpoint - 1}px)`
-
+  const subscribe = (callback: () => void) => {
     const mql = window.matchMedia(query)
-    const onChange = (e: MediaQueryListEvent) => setMatches(e.matches)
+    mql.addEventListener("change", callback)
+    return () => mql.removeEventListener("change", callback)
+  }
 
-    // Set initial value
-    setMatches(mql.matches)
+  const getSnapshot = () => {
+    const mql = window.matchMedia(query)
+    return mql.matches
+  }
 
-    // Add listener
-    mql.addEventListener("change", onChange)
-    return () => mql.removeEventListener("change", onChange)
-  }, [mode, breakpoint])
+  const getServerSnapshot = () => false
 
-  return !!matches
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }

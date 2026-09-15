@@ -5,6 +5,12 @@ import OurValues from "@/components/app/aboutUs/OurValues";
 import TestimonialsSlider from "@/components/app/home/TestimonialsSlider";
 // import LogoMarquee from "@/components/site/LogoMarquee";
 import Footer from "@/components/app/Footer";
+import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildMetadata(await getPageMeta("about-us"));
+}
 
 const testimonials = [
   {

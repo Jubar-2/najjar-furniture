@@ -14,14 +14,12 @@ export default function HomeHeroClint() {
         return <Hero />;
     }
 
-    const content = data?.content;
-
     return (
         <Hero
             isLoading={isLoading}
-            imageSrc={content?.banner}
-            headline={content?.heading ? [content.heading] : undefined}
-            description={content?.paragraph}
+            imageSrc={data?.banner}
+            headline={data?.heading ? [data.heading] : undefined}
+            description={data?.paragraph}
         />
     );
 }

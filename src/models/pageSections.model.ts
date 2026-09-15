@@ -6,12 +6,15 @@ import mongoose, { Schema, Document, Model, Types } from "mongoose";
 // one-line change here, not a migration.
 export type PageSectionType =
     | "banner"
-    | "rich_text"
-    | "features"
-    | "faq"
+    | "home-layer-3"
+    | "home-layer-1"
+    | "home-layer-2"
     | "gallery"
+    | "portfolio"
+    | "about"
     | "testimonials"
-    | "cta";
+    | "privacy-policy"
+    | "contact"
 
 export interface IPageSection extends Document {
     pageId: Types.ObjectId;
@@ -30,14 +33,14 @@ const PageSectionSchema = new Schema<IPageSection>(
             ref: "Page",
             required: true,
             index: true,
-        },      
+        },
         type: {
             type: String,
             required: true,
             trim: true,
             // Remove this `enum` if you want type to stay fully free-form like
             // the Postgres VARCHAR(50) comment suggests (any string allowed).
-            enum: ["banner", "rich_text", "features", "faq", "gallery", "testimonials", "cta"],
+            enum: ["banner", "home-layer-3", "home-layer-1", "home-layer-2", "gallery", "portfolio", "about", "testimonials", "privacy-policy", "contact"],
         },
         isActive: {
             type: Boolean,

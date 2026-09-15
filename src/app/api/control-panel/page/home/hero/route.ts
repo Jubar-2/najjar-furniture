@@ -3,7 +3,7 @@ import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import PageSection from "@/models/pageSections.model";
 import PageModel from "@/models/page.model";
-import { HeroSchema } from "@/schemas/hero.schema";
+import { HeroSchema, HeroUpdatedSchema } from "@/schemas/hero.schema";
 import { deleteUploadedFileOnCloudinary, uploadOnCloudinary } from "@/services/Cloudinary";
 import { ApiResponse } from "@/lib/apiResponse";
 
@@ -75,7 +75,7 @@ export async function PATCH(req: NextRequest) {
         const rawHeading = formData.get("heading");
         const rawParagraph = formData.get("paragraph");
 
-        const parsed = HeroSchema.safeParse({
+        const parsed = HeroUpdatedSchema.safeParse({
             // formData.get() returns "" for a missing text field and a zero-byte
             // File for a missing file input — normalize both to `undefined` so
             // .optional() actually treats "not sent" as "not sent".

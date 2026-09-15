@@ -12,9 +12,6 @@ import type { Swiper as SwiperType } from "swiper";
 import { useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
 
-import type { SpotlightSlide } from "./SpotlightCarousel";
-import type { CardSlide } from "./CardCarousel";
-
 export const spotlightSlides: SpotlightSlide[] = [
   {
     id: "matter",

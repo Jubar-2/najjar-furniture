@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import { Sofa, Users, Hammer, Star, ArrowRight } from "lucide-react";
 import Container from "@/components/utils/Container";
@@ -10,9 +10,10 @@ interface Stat {
 }
 
 interface PortfolioImage {
-  src: string;
+  src: string | StaticImageData;
   alt: string;
   href: string;
+  width?: string | number;
 }
 
 interface PortfolioShowcaseProps {
@@ -21,7 +22,7 @@ interface PortfolioShowcaseProps {
   stats?: Stat[];
   ctaLabel?: string;
   ctaHref?: string;
-  images: [PortfolioImage, PortfolioImage, PortfolioImage, PortfolioImage];
+  images: PortfolioImage[];
 }
 
 const DEFAULT_STATS: Stat[] = [
@@ -82,7 +83,7 @@ export default function PortfolioShowcase({
             <span className="mt-2 block h-0.75 w-14 bg-[#602100]" />
 
             <p className="mt-5 max-w-md text-[20px] leading-relaxed text-black">
-              {description}
+              <span dangerouslySetInnerHTML={{ __html: description }} />
             </p>
 
             <div className="mt-8 flex flex-wrap gap-8">
@@ -111,9 +112,9 @@ export default function PortfolioShowcase({
 
           {/* Right column — 2x2 image grid */}
           <div className="grid grid-cols-2 gap-4">
-            {images.map((image) => (
+            {images.map((image, index) => (
               <div
-                key={image.src}
+                key={index}
                 className="relative aspect-[4/3.1] overflow-hidden rounded-2xl shadow-[0px_4px_20px_0px_#00000040]"
               >
                 <Image

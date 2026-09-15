@@ -72,6 +72,19 @@ export function useMenuNavigation<T>({
     autoSelectFirstItem ? 0 : -1
   )
 
+  // Reset selection when the query or autoSelectFirstItem changes
+  const [prevResetKey, setPrevResetKey] = useState({
+    query,
+    autoSelectFirstItem,
+  })
+  if (
+    prevResetKey.query !== query ||
+    prevResetKey.autoSelectFirstItem !== autoSelectFirstItem
+  ) {
+    setPrevResetKey({ query, autoSelectFirstItem })
+    if (query) setSelectedIndex(autoSelectFirstItem ? 0 : -1)
+  }
+
   useEffect(() => {
     const handleKeyboardNavigation = (event: KeyboardEvent) => {
       if (!items.length) return false
@@ -192,12 +205,6 @@ export function useMenuNavigation<T>({
     orientation,
     loopOnTab,
   ])
-
-  useEffect(() => {
-    if (query) {
-      setSelectedIndex(autoSelectFirstItem ? 0 : -1)
-    }
-  }, [query, autoSelectFirstItem])
 
   return {
     selectedIndex: items.length ? selectedIndex : undefined,

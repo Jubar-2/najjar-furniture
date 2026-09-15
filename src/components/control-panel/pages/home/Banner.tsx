@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ImageUpload from "@/components/control-panel/pages/ImageUpload";
 import { useGetBanner, useUpdateBanner } from "@/customHooks/getBanner";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -11,25 +11,18 @@ function Banner() {
     const [file, setFile] = useState<File | null>(null);
     const { data, isLoading } = useGetBanner();
     const { mutate } = useUpdateBanner()
-    const [heading, setHeading] = useState<string | null>("");
-    const [paragraph, setParagraph] = useState<string | null>("")
+    const [draft, setDraft] = useState<{ heading: string; paragraph: string } | null>(null)
 
-    useEffect(() => {
-        if (!isLoading && data?.content?.heading) {
-            setHeading(data.content.heading)
-        }
-
-        if (!isLoading && data?.content?.paragraph) {
-            setParagraph(data.content.paragraph)
-        }
-    }, [data]);
+    const saved = data ?? { heading: "", paragraph: "" }
+    const heading = draft?.heading ?? saved.heading ?? ""
+    const paragraph = draft?.paragraph ?? saved.paragraph ?? ""
 
     function handleClick() {
 
         const form = new FormData();
         form.append("paragraph", paragraph)
         form.append("heading", heading)
-        form.append("banner", file)
+        if (file) form.append("banner", file)
 
         mutate(form);
     }
@@ -49,7 +42,7 @@ function Banner() {
                     <FieldLabel htmlFor="textarea-disabled">Message</FieldLabel>
                     <Textarea
                         value={isLoading ? "loading..." : heading}
-                        onChange={(e) => setHeading(e.target.value)}
+                        onChange={(e) => setDraft((d) => ({ heading: e.target.value, paragraph: d?.paragraph ?? saved.paragraph ?? "" }))}
                         id="textarea-disabled"
                         placeholder="Type your message here."
                     />
@@ -61,7 +54,7 @@ function Banner() {
                     <FieldLabel htmlFor="textarea-disabled">Paragraph</FieldLabel>
                     <Textarea
                         value={isLoading ? "loading..." : paragraph}
-                        onChange={(e) => setParagraph(e.target.value)}
+                        onChange={(e) => setDraft((d) => ({ heading: d?.heading ?? saved.heading ?? "", paragraph: e.target.value }))}
                         id="textarea-disabled"
                         placeholder="Type your message here."
                     />

@@ -1,20 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { dbConnect } from "@/lib/dbConnect";
-import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/lib/cloudinary";
-import PageModel from "@/models/Page";
-import PageSection from "@/models/PageSection";
+import dbConnect from "@/db/dbConnect";
+import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/services/Cloudinary";
+import PageModel from "@/models/page.model";
+import PageSection from "@/models/pageSections.model";
 import {
   HomeLayerThreeSchema,
   HomeLayerThreeUpdateSchema,
   HOME_LAYER_THREE_KEYS,
   readHomeLayerThreeFromFormData,
-} from "@/schemas/homeLayerThree";
+} from "@/schemas/homeLayerThree.schema";
 
 // Keep this in one place — POST and PATCH were previously using two
 // different, mismatched type strings ("home-lear3" vs "home-lear2"),
 // which meant PATCH could never find the section POST had just created.
 const SECTION_TYPE = "home-layer-3";
+
+// GET /api/control-panel/page/home/layer3
+export async function GET() {
+  try {
+    await dbConnect();
+
+    const page = await PageModel.findOne({ pageName: "home" });
+    if (!page) {
+      return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
+    }
+
+    const section = await PageSection.findOne({
+      pageId: page._id,
+      type: SECTION_TYPE,
+    }).lean();
+
+    if (!section) {
+      return NextResponse.json({ error: "Layer 3 section not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ data: section }, { status: 200 });
+  } catch (error) {
+    console.error("GET /control-panel/page/home/layer3 failed:", error);
+    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+  }
+}
 
 // POST /api/sections/home-layer-three
 // Creates the 6-item section. All 6 items are required.

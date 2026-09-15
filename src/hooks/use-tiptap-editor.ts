@@ -2,7 +2,8 @@
 
 import type { Editor } from "@tiptap/react"
 import { useCurrentEditor, useEditorState } from "@tiptap/react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { useEffect } from "react"
 
 function getActivePageEditor(editor: Editor): Editor | null {
   const storage = editor.storage as unknown as Record<string, unknown>
@@ -22,20 +23,18 @@ export function useTiptapEditor(providedEditor?: Editor | null): {
   const [storageEditor, setStorageEditor] = useState<Editor | null>(null)
 
   useEffect(() => {
-    if (!mainEditor) {
-      setStorageEditor(null)
-      return
-    }
+    if (!mainEditor) return
 
     const updateHandler = () =>
       setStorageEditor(getActivePageEditor(mainEditor))
 
-    updateHandler()
+    const frame = requestAnimationFrame(() => updateHandler())
 
     mainEditor.on("update", updateHandler)
     mainEditor.on("selectionUpdate", updateHandler)
 
     return () => {
+      cancelAnimationFrame(frame)
       mainEditor.off("update", updateHandler)
       mainEditor.off("selectionUpdate", updateHandler)
     }
@@ -52,8 +51,10 @@ export function useTiptapEditor(providedEditor?: Editor | null): {
     }
   }, [storageEditor])
 
+  const resolvedEditor = mainEditor ? storageEditor : null
+
   const editorState = useEditorState({
-    editor: storageEditor ?? mainEditor,
+    editor: resolvedEditor ?? mainEditor,
     selector(context) {
       if (!context.editor) {
         return { editor: null, editorState: undefined, canCommand: undefined }

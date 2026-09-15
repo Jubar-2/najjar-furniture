@@ -11,14 +11,16 @@ export interface GalleryContent {
     imagesSub: GalleryImage[];
 }
 
+export const HOME_GALLERY_QUERY_KEY = ["home-gallery"] as const;
+
 export const useGetGallery = () => {
     return useQuery<GalleryContent>({
-        queryKey: ["home-gallery"],
+        queryKey: HOME_GALLERY_QUERY_KEY,
         queryFn: async () => {
             const { data } = await axios.get("/api/control-panel/page/home/gallary");
             return data.data?.content || { images: [], imagesSub: [] };
         },
-        staleTime: 15 * 1000 * 60,
+        staleTime: 15 * 60 * 1000,
         refetchOnWindowFocus: true,
     });
 };

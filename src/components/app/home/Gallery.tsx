@@ -6,35 +6,19 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
 import { Pause, Play } from "lucide-react";
 
+import type { GalleryImage } from "@/customHooks/getGallery";
+
 import "swiper/css";
-
-const images = [
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-];
-
-const imagesSub = [
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-    "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/bf/d7/aa/bfd7aa41-c3ef-51b1-bd47-1ceb10d7bb53/65cc7cce-58fb-4f87-bc9f-bd468a6cdfbd.png/1250x668sr.jpg",
-];
 
 const AUTOPLAY_DELAY = 3000;
 
-export default function Gallery() {
+interface GalleryProps {
+    isLoading?: boolean;
+    images?: GalleryImage[];
+    imagesSub?: GalleryImage[];
+}
+
+export default function Gallery({ isLoading, images = [], imagesSub = [] }: GalleryProps) {
     const swiperRef = useRef<SwiperType | null>(null);
 
     const [activeIndex, setActiveIndex] = useState(0);
@@ -46,7 +30,6 @@ export default function Gallery() {
     useEffect(() => {
         if (!isPlaying) return;
 
-        setProgress(0);
         const start = performance.now();
         let frame: number;
 
@@ -60,6 +43,9 @@ export default function Gallery() {
         frame = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(frame);
     }, [activeIndex, isPlaying]);
+
+    if (isLoading) return <section className="gallery bg-[#F98D550F] py-7.5" />;
+    if (images.length === 0 && imagesSub.length === 0) return null;
 
     const toggleAutoplay = () => {
         const swiper = swiperRef.current;
@@ -95,9 +81,9 @@ export default function Gallery() {
                         disableOnInteraction: false,
                     }}
                 >
-                    {images.map((src, index) => (
-                        <SwiperSlide key={index} className="!w-[60%]">
-                            <img src={src} alt="" className="block w-full h-auto" />
+                    {images.map((img, index) => (
+                        <SwiperSlide key={img.publicId || index} className="!w-[60%]">
+                            <img src={img.url} alt="" className="block w-full h-auto" />
                         </SwiperSlide>
                     ))}
                 </Swiper>
@@ -118,10 +104,10 @@ export default function Gallery() {
                         disableOnInteraction: false,
                     }}
                 >
-                    {imagesSub.map((src, index) => (
-                        <SwiperSlide key={index} className="!w-[23%]">
+                    {imagesSub.map((img, index) => (
+                        <SwiperSlide key={img.publicId || index} className="!w-[23%]">
                             <div className="w-full">
-                                <img src={src} alt="" className="block w-full h-auto" />
+                                <img src={img.url} alt="" className="block w-full h-auto" />
                             </div>
                         </SwiperSlide>
                     ))}

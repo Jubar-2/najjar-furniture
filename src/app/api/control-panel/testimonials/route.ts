@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
         const { name, location, message, avatar } = parsed.data;
 
         let avatarUrl: string | undefined;
+        let avatarPublicId: string | undefined;
 
         if (avatar) {
             const avatarCloud = await uploadOnCloudinary(avatar);
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ error: "Avatar upload failed." }, { status: 502 });
             }
             avatarUrl = avatarCloud.secure_url;
+            avatarPublicId = avatarCloud.public_id;
         }
 
         await dbConnect();
@@ -55,6 +57,7 @@ export async function POST(req: NextRequest) {
             location,
             message,
             avatar: avatarUrl,
+            avatarPublicId,
         });
 
         return NextResponse.json({ data: testimonial }, { status: 201 });

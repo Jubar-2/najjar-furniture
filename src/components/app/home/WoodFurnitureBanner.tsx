@@ -1,12 +1,15 @@
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import Container from "@/components/utils/Container";
 
 interface WoodFurnitureBannerProps {
-    imageSrc: string;
+    imageSrc: string | StaticImageData;
     backgroundColor: string;
     title?: string;
     description?: string;
+    descriptionColor?: string;
+    headingColor?: string;
+    textColor?: string;
     ctaLabel?: string;
     ctaHref?: string;
 }
@@ -22,9 +25,9 @@ export default function WoodFurnitureBanner({
     ctaHref = "/collection/wood-furniture",
 }: WoodFurnitureBannerProps) {
     return (
-        <section className={`w-full ${backgroundColor} mt-5`}>
+        <section className={`w-full ${backgroundColor} mt-5 pb-5`}>
             <Container>
-                <div className="flex flex-col items-center pt-10 text-center md:pt-14">
+                <div className="flex flex-col items-center pt-10 text-center md:pt-14 pb-6">
                     <h2 className={`text-[48px] font-bold ${headingColor} md:text-[1.75rem]`}>
                         {title}
                     </h2>
@@ -38,8 +41,8 @@ export default function WoodFurnitureBanner({
                         {ctaLabel.toUpperCase()}
                     </Link>
                 </div>
-                <div className="w-full">
-                    <Image src={imageSrc} alt="Wood Furniture" />
+                <div className="w-full flex items-center justify-center">
+                    <Image src={imageSrc} alt="Wood Furniture" width={735} height={520}/>
                 </div>
             </Container>
         </section>

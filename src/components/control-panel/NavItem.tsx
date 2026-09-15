@@ -2,7 +2,6 @@ import { ChevronRight, ChevronsRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ReactNode, useState } from "react";
-import React from "react";
 
 type subItemType = {
     label: string,
@@ -23,9 +22,11 @@ function NavItem({ icon, label, isCollapsed, active = false, subItems = [], href
     const hasSubmenu = subItems.length > 0;
 
     // Close sub-menus when sidebar collapses
-    React.useEffect(() => {
+    const [prevCollapsed, setPrevCollapsed] = useState(isCollapsed);
+    if (prevCollapsed !== isCollapsed) {
+        setPrevCollapsed(isCollapsed);
         if (isCollapsed) setIsOpen(false);
-    }, [isCollapsed]);
+    }
 
     const handleToggle = () => {
         if (!isCollapsed && hasSubmenu) {

@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface ITestimonial extends Document {
   avatar: string;
+  avatarPublicId: string;
   name: string;
   location: string;
   message: string;
@@ -12,6 +13,9 @@ export interface ITestimonial extends Document {
 const testimonialSchema = new Schema<ITestimonial>(
   {
     avatar: {
+      type: String,
+    },
+    avatarPublicId: {
       type: String,
     },
     name: {

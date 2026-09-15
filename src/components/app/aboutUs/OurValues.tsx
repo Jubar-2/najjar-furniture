@@ -1,5 +1,5 @@
 import { Hammer, Leaf, ShieldCheck, HeartHandshake } from "lucide-react";
-import Container from "@/components/app/Header";
+import Container from "@/components/utils/Container";
 
 interface Value {
   icon: React.ReactNode;

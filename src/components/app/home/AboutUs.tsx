@@ -1,8 +1,8 @@
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import Container from "@/components/utils/Container";
 
 interface AboutUsProps {
-  imageSrc: string;
+  imageSrc: string | StaticImageData;
   imageAlt?: string;
   title?: string;
   description?: string;
