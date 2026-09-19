@@ -12,7 +12,7 @@ import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Toolbar } from "./Toolbar";
 
 interface TiptapEditorProps {
@@ -30,6 +30,8 @@ export default function TiptapEditor({
   editable = true,
   className = "",
 }: TiptapEditorProps) {
+  const lastEmittedHtmlRef = useRef<string | null>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -70,15 +72,33 @@ export default function TiptapEditor({
           "prose-img:rounded-md prose-a:text-primary",
       },
     },
-    onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      lastEmittedHtmlRef.current = html;
+      onChange?.(html);
+    },
   });
 
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content, { emitUpdate: false });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content]);
+    if (!editor || content === undefined) return;
+
+    // If the content matches what the user just typed and emitted, do not reset
+    if (content === lastEmittedHtmlRef.current) return;
+
+    // If the content already matches the current editor HTML, do not reset
+    const currentHtml = editor.getHTML();
+    if (content === currentHtml) return;
+
+    // Ignore differences when both are effectively empty
+    const isEffectivelyEmpty =
+      (!content || content === "<p></p>" || content.trim() === "") &&
+      (editor.isEmpty || currentHtml === "<p></p>" || currentHtml.trim() === "");
+    if (isEffectivelyEmpty) return;
+
+    // External change (e.g. initial fetch from server)
+    editor.commands.setContent(content, { emitUpdate: false });
+    lastEmittedHtmlRef.current = content;
+  }, [content, editor]);
 
   if (!editor) return null;
 

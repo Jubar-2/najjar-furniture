@@ -4,7 +4,7 @@ export interface IApiResponse<T = unknown> {
   success: boolean;
   message: string;
   data?: T;
-  errors?: Record<string, string[]>;
+  errors?: unknown;
 }
 
 interface CookieOptions {
@@ -63,12 +63,12 @@ export class ApiResponse {
   }
 
   /**
-   * Error Response (400, 401, 403, 404, 409)
+   * Error Response (400, 401, 403, 404, 409, 422, 500, 502)
    */
   static error(
     message: string = "An error occurred",
     status: number = 400,
-    errors?: Record<string, string[]>
+    errors?: unknown
   ) {
     return NextResponse.json(
       {

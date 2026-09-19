@@ -13,11 +13,11 @@ export const useGetLayer1 = () => {
     return useQuery<Layer1Content>({
         queryKey: HOME_LAYER1_QUERY_KEY,
         queryFn: async () => {
-            const { data } = await axios.get("/api/control-panel/page/home/layer1");
+            const { data } = await axios.get("/api/page/home/layer1");
             return data.data?.content;
         },
         staleTime: 15 * 60 * 1000,
-        refetchOnWindowFocus: true,
+        refetchOnWindowFocus: false,
     });
 };
 

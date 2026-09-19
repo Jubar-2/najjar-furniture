@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
-import dbConnect  from "@/db/dbConnect";
+import dbConnect from "@/db/dbConnect";
 import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/services/Cloudinary";
 import PageModel from "@/models/page.model";
 import PageSection from "@/models/pageSections.model";
@@ -10,35 +10,9 @@ import {
   PORTFOLIO_IMAGE_KEYS,
   readPortfolioFromFormData,
 } from "@/schemas/portfolio.schema";
+import { ApiResponse } from "@/lib/apiResponse";
 
 const SECTION_TYPE = "portfolio";
-
-// GET /api/sections/portfolio
-export async function GET() {
-  try {
-    await dbConnect();
-
-    const page = await PageModel.findOne({ pageName: "home" });
-    if (!page) {
-      return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
-    }
-
-    const section = await PageSection.findOne({
-      pageId: page._id,
-      type: SECTION_TYPE,
-      isActive: true,
-    }).lean();
-
-    if (!section) {
-      return NextResponse.json({ error: "Portfolio section not found." }, { status: 404 });
-    }
-
-    return NextResponse.json({ data: section }, { status: 200 });
-  } catch (error) {
-    console.error("GET /sections/portfolio failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
-  }
-}
 
 // POST /api/sections/portfolio
 // Creates the section. Paragraph + all 6 images are required.
@@ -50,9 +24,10 @@ export async function POST(req: NextRequest) {
     const parsed = PortfolioCreateSchema.safeParse(raw);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-        { status: 422 }
+      return ApiResponse.error(
+        "Validation failed.",
+        422,
+        z.treeifyError(parsed.error)
       );
     }
 
@@ -60,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     const page = await PageModel.findOne({ pageName: "home" });
     if (!page) {
-      return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
+      return ApiResponse.error("Home page is not found.", 404);
     }
 
     const content: Record<string, unknown> = { paragraph: parsed.data.paragraph };
@@ -68,7 +43,7 @@ export async function POST(req: NextRequest) {
     for (const key of PORTFOLIO_IMAGE_KEYS) {
       const imageCloud = await uploadOnCloudinary(parsed.data[key]);
       if (!imageCloud) {
-        return NextResponse.json({ error: `Upload failed for ${key}.` }, { status: 502 });
+        return ApiResponse.error(`Upload failed for ${key}.`, 502);
       }
       content[key] = { url: imageCloud.secure_url, publicId: imageCloud.public_id };
     }
@@ -79,10 +54,10 @@ export async function POST(req: NextRequest) {
       content,
     });
 
-    return NextResponse.json({ data: section }, { status: 201 });
+    return ApiResponse.success(section, "Portfolio section created", 201);
   } catch (error) {
     console.error("POST /sections/portfolio failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }
 
@@ -97,9 +72,10 @@ export async function PATCH(req: NextRequest) {
     const parsed = PortfolioUpdateSchema.safeParse(raw);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-        { status: 422 }
+      return ApiResponse.error(
+        "Validation failed.",
+        422,
+        z.treeifyError(parsed.error)
       );
     }
 
@@ -107,23 +83,23 @@ export async function PATCH(req: NextRequest) {
     const changedImageKeys = PORTFOLIO_IMAGE_KEYS.filter((key) => images[key] !== undefined);
 
     if (paragraph === undefined && changedImageKeys.length === 0) {
-      return NextResponse.json({ error: "No fields provided to update." }, { status: 400 });
+      return ApiResponse.error("No fields provided to update.", 400);
     }
 
     await dbConnect();
 
     const page = await PageModel.findOne({ pageName: "home" });
     if (!page) {
-      return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
+      return ApiResponse.error("Home page is not found.", 404);
     }
 
     let section = await PageSection.findOne({ pageId: page._id, type: SECTION_TYPE });
     if (!section) {
-        section = await PageSection.create({
-            pageId: page._id,
-            type: SECTION_TYPE,
-            content: { paragraph: "" },
-        });
+      section = await PageSection.create({
+        pageId: page._id,
+        type: SECTION_TYPE,
+        content: { paragraph: "" },
+      });
     }
 
     const updatedContent: Record<string, unknown> = { ...section.content };
@@ -137,7 +113,7 @@ export async function PATCH(req: NextRequest) {
       const imageCloud = await uploadOnCloudinary(file);
 
       if (!imageCloud) {
-        return NextResponse.json({ error: `Upload failed for ${key}.` }, { status: 502 });
+        return ApiResponse.error(`Upload failed for ${key}.`, 502);
       }
 
       const previousPublicId = (updatedContent[key] as { publicId?: string } | undefined)?.publicId;
@@ -152,9 +128,9 @@ export async function PATCH(req: NextRequest) {
     section.markModified("content");
     await section.save();
 
-    return NextResponse.json({ data: section }, { status: 200 });
+    return ApiResponse.success(section);
   } catch (error) {
     console.error("PATCH /sections/portfolio failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }

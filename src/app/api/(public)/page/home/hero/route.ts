@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
 import dbConnect from "@/db/dbConnect";
 import PageModel from "@/models/page.model";
 import PageSection from "@/models/pageSections.model";
 import { ApiResponse } from "@/lib/apiResponse";
 
-// GET /api/sections/banner
+// GET /api/page/home/hero
 // Returns the hero/banner section content for the home page.
 export async function GET() {
     try {
@@ -13,7 +12,7 @@ export async function GET() {
         const page = await PageModel.findOne({ pageName: "home" });
 
         if (!page) {
-            return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
+            return ApiResponse.error("Home page is not found.", 404);
         }
 
         const section = await PageSection.findOne({
@@ -23,12 +22,12 @@ export async function GET() {
         }).lean();
 
         if (!section) {
-            return NextResponse.json({ error: "Banner section not found." }, { status: 404 });
+            return ApiResponse.error("Banner section not found.", 404);
         }
 
         return ApiResponse.success(section);
     } catch (error) {
-        console.error("GET /sections/banner failed:", error);
-        return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+        console.error("GET /page/home/hero failed:", error);
+        return ApiResponse.fatal("Something went wrong.");
     }
 }

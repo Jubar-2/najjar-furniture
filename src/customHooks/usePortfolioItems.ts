@@ -7,6 +7,8 @@ export interface PortfolioItem {
   category?: string;
   description: string;
   image: string;
+  imagePublicId?: string;
+  subImages?: Array<string | { url: string; publicId?: string }>;
   createdAt?: string;
 }
 
@@ -20,7 +22,7 @@ export const useGetPortfolioItems = () => {
       return data.data ?? [];
     },
     staleTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 };
 

@@ -21,19 +21,19 @@ export function Panel({
   background,
 }: ProductPanel) {
   return (
-    <div className={`relative flex flex-col items-center px-8 pb-0 pt-10 text-center ${background}`}>
-      <h3 className="text-lg font-semibold text-[#2b241f] md:text-xl">{title}</h3>
-      <p className="mt-2 max-w-[280px] text-[12px] leading-relaxed text-[#2b241f]/70">
+    <div className={`relative flex flex-col items-center px-4 sm:px-8 pb-0 pt-8 sm:pt-10 text-center overflow-hidden shadow-xs ${background}`}>
+      <h3 className="text-base sm:text-lg md:text-xl font-bold text-[#2b241f]">{title}</h3>
+      <p className="mt-2 max-w-70 sm:max-w-xs text-xs sm:text-[13px] leading-relaxed text-[#2b241f]/75">
         {description}
       </p>
-      <Link
+      {/* <Link
         href={ctaHref}
-        className="mt-4 rounded-full border border-[#2b241f]/30 px-5 py-1.5 text-[9px] font-medium tracking-wide text-[#2b241f] transition-colors hover:border-[#2b241f] hover:bg-[#2b241f] hover:text-white"
+        className="mt-4 rounded-full border border-[#2b241f]/30 px-5 py-1.5 text-[9px] sm:text-[10px] font-semibold tracking-wider text-[#2b241f] transition-all hover:border-[#2b241f] hover:bg-[#2b241f] hover:text-white"
       >
         {ctaLabel.toUpperCase()}
-      </Link>
+      </Link> */}
 
-      <div className="relative mt-6 h-65 w-full max-w-[320px] md:h-80">
+      <div className="relative mt-6 h-52 sm:h-64 md:h-80 w-full max-w-[320px]">
         <Image src={imageSrc} alt={imageAlt} fill className="object-contain object-bottom" />
       </div>
     </div>

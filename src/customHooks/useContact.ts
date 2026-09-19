@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import type { ContactSection, ContactMessageStatus } from "@/schemas/contact.schema";
 
 export interface ContactMessage {
@@ -18,12 +19,18 @@ export const useGetContact = () => {
     return useQuery<ContactSection | null>({
         queryKey: CONTACT_QUERY_KEY,
         queryFn: async () => {
-            const res = await fetch("/api/control-panel/contact");
-            if (!res.ok) throw new Error("Failed to load contact settings.");
-            const json = await res.json();
-            return json.data?.content ?? null;
+            try {
+                const { data } = await axios.get("/api/contact");
+                return data?.data?.content ?? null;
+            } catch (err: unknown) {
+                if (axios.isAxiosError(err) && err.response?.status === 404) {
+                    return null;
+                }
+                throw new Error("Failed to load contact settings.");
+            }
         },
         staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
     });
 };
 
@@ -31,14 +38,8 @@ export const useSaveContact = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (content: ContactSection) => {
-            const res = await fetch("/api/control-panel/contact", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(content),
-            });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error ?? "Save failed.");
-            return json;
+            const { data } = await axios.patch("/api/control-panel/contact", content);
+            return data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: CONTACT_QUERY_KEY });
@@ -50,12 +51,11 @@ export const useGetContactMessages = () => {
     return useQuery<ContactMessage[]>({
         queryKey: CONTACT_MESSAGES_QUERY_KEY,
         queryFn: async () => {
-            const res = await fetch("/api/control-panel/contact/messages");
-            if (!res.ok) throw new Error("Failed to load messages.");
-            const json = await res.json();
-            return json.data ?? [];
+            const { data } = await axios.get("/api/control-panel/contact/messages");
+            return data?.data ?? [];
         },
         staleTime: 30 * 1000,
+        refetchOnWindowFocus: false,
     });
 };
 
@@ -63,14 +63,8 @@ export const useUpdateContactMessageStatus = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, status }: { id: string; status: ContactMessageStatus }) => {
-            const res = await fetch(`/api/control-panel/contact/messages/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status }),
-            });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error ?? "Update failed.");
-            return json;
+            const { data } = await axios.patch(`/api/control-panel/contact/messages/${id}`, { status });
+            return data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: CONTACT_MESSAGES_QUERY_KEY });
@@ -82,12 +76,8 @@ export const useDeleteContactMessage = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (id: string) => {
-            const res = await fetch(`/api/control-panel/contact/messages/${id}`, {
-                method: "DELETE",
-            });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error ?? "Delete failed.");
-            return json;
+            const { data } = await axios.delete(`/api/control-panel/contact/messages/${id}`);
+            return data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: CONTACT_MESSAGES_QUERY_KEY });

@@ -1,127 +1,156 @@
+import { Suspense } from "react";
+import axios from "axios";
 import PageBanner from "@/components/app/PageBanner";
 import Container from "@/components/utils/Container";
 import Footer from "@/components/app/Footer";
+import dbConnect from "@/db/dbConnect";
+import PageModel from "@/models/page.model";
+import PageSection from "@/models/pageSections.model";
 import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
+import { getPageBanner } from "@/lib/getPageBanner";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata(await getPageMeta("terms-conditions"));
 }
 
-const LAST_UPDATED = "September 10, 2026";
+async function getBaseUrl() {
+  const hdrs = await headers();
+  const host = hdrs.get("host") ?? "localhost:3000";
+  const proto = hdrs.get("x-forwarded-proto") ?? "http";
+  return `${proto}://${host}`;
+}
 
-const SECTIONS = [
-  {
-    heading: "1. Acceptance of Terms",
-    body: [
-      "By accessing or using the Najjar Furniture website, placing an order, or otherwise engaging with our services, you agree to be bound by these Terms & Conditions. If you do not agree with any part of these terms, please do not use our website or services.",
-    ],
-  },
-  {
-    heading: "2. Products & Descriptions",
-    body: [
-      "We make every effort to display our furniture and finishes as accurately as possible. However, because much of our furniture is handcrafted from natural wood, slight variations in grain, color, and texture between the product shown and the item you receive are normal and not considered defects.",
-      "We reserve the right to modify, discontinue, or limit the availability of any product without prior notice.",
-    ],
-  },
-  {
-    heading: "3. Pricing & Payment",
-    body: [
-      "All prices are listed in the applicable local currency and are subject to change without notice. For custom or made-to-order pieces, a deposit may be required before production begins, with the balance due prior to delivery. Full payment terms will be confirmed at the time of order.",
-    ],
-  },
-  {
-    heading: "4. Custom & Made-to-Order Items",
-    body: [
-      "Custom orders are built to your specified dimensions, wood finish, and upholstery. Because these pieces are made specifically for you, custom orders are generally non-refundable and non-cancellable once production has begun, except where required by law or explicitly agreed in writing.",
-      "Estimated production and delivery timelines are provided in good faith but are not guaranteed, as handcrafted work can be affected by material availability and workshop capacity.",
-    ],
-  },
-  {
-    heading: "5. Delivery & Risk of Loss",
-    body: [
-      "Delivery timelines communicated at checkout or by our team are estimates only. Risk of loss or damage to the product passes to you upon delivery. Please inspect your furniture upon arrival and report any visible damage to our team within 48 hours.",
-    ],
-  },
-  {
-    heading: "6. Returns, Exchanges & Warranty",
-    body: [
-      "Standard (non-custom) items may be eligible for return or exchange within the timeframe stated on our Returns policy, provided the item is unused and in its original condition. Custom and made-to-order pieces are final sale unless the item arrives defective.",
-      "Our furniture is covered by a limited warranty against manufacturing defects in materials and craftsmanship for the period specified at the time of purchase. This warranty does not cover normal wear and tear, misuse, or damage caused by improper care.",
-    ],
-  },
-  {
-    heading: "7. Intellectual Property",
-    body: [
-      "All content on this website — including designs, photographs, text, logos, and graphics — is the property of Najjar Furniture and is protected by applicable intellectual property laws. You may not reproduce, distribute, or use our content for commercial purposes without our prior written consent.",
-    ],
-  },
-  {
-    heading: "8. User Conduct",
-    body: [
-      "You agree not to misuse our website, including attempting to gain unauthorized access to our systems, submitting false information, or using the site for any unlawful purpose.",
-    ],
-  },
-  {
-    heading: "9. Limitation of Liability",
-    body: [
-      "To the fullest extent permitted by law, Najjar Furniture shall not be liable for any indirect, incidental, or consequential damages arising from your use of our website or products, beyond the purchase price of the relevant item.",
-    ],
-  },
-  {
-    heading: "10. Governing Law",
-    body: [
-      "These Terms & Conditions are governed by and construed in accordance with the laws of Bangladesh, without regard to its conflict of law principles.",
-    ],
-  },
-  {
-    heading: "11. Changes to These Terms",
-    body: [
-      "We may update these Terms & Conditions from time to time. Continued use of our website or services after changes are posted constitutes your acceptance of the revised terms.",
-    ],
-  },
-  {
-    heading: "12. Contact Us",
-    body: [
-      "If you have any questions about these Terms & Conditions, please contact us at support@najjarfurniture.com or through the details on our Contact Us page.",
-    ],
-  },
-];
+async function getTermsConditionsContent() {
+  // 1. Fetch via /api/page/terms-conditions route
+  try {
+    const baseUrl = await getBaseUrl();
+    const { data } = await axios.get(`${baseUrl}/api/page/terms-conditions`);
+    const body = data.data?.content?.body;
+    if (typeof body === "string" && body.trim()) {
+      return {
+        body,
+        updatedAt: data.data?.updatedAt ? new Date(data.data.updatedAt) : null,
+      };
+    }
+  } catch (error) {
+    console.error("Fetch from /api/page/terms-conditions failed, using fallback:", error);
+  }
 
-export default function TermsPage() {
+  // 2. Direct database fallback if fetch is not reachable
+  try {
+    await dbConnect();
+
+    const page = await PageModel.findOne({ pageName: "terms-conditions" });
+    if (!page) return null;
+
+    const section = await PageSection.findOne({
+      pageId: page._id,
+      type: "terms-conditions",
+      isActive: true,
+    }).lean();
+
+    const body = section?.content?.body;
+    if (typeof body !== "string" || !body.trim()) return null;
+
+    return {
+      body,
+      updatedAt: section?.updatedAt ? new Date(section.updatedAt) : null,
+    };
+  } catch (error) {
+    console.error("Failed to load terms & conditions content from database:", error);
+    return null;
+  }
+}
+
+export function TermsConditionsSkeleton() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      <Skeleton className="h-3.5 w-36 bg-slate-200/70" />
+
+      <div className="space-y-3 pt-2">
+        <Skeleton className="h-4 w-full bg-slate-100" />
+        <Skeleton className="h-4 w-[95%] bg-slate-100" />
+        <Skeleton className="h-4 w-[85%] bg-slate-100" />
+      </div>
+
+      <div className="space-y-3 pt-4">
+        <Skeleton className="h-6 w-56 bg-slate-200/80 mb-3" />
+        <Skeleton className="h-4 w-full bg-slate-100" />
+        <Skeleton className="h-4 w-[92%] bg-slate-100" />
+        <Skeleton className="h-4 w-[88%] bg-slate-100" />
+      </div>
+
+      <div className="space-y-3 pt-4">
+        <Skeleton className="h-6 w-48 bg-slate-200/80 mb-3" />
+        <Skeleton className="h-4 w-full bg-slate-100" />
+        <Skeleton className="h-4 w-[96%] bg-slate-100" />
+        <Skeleton className="h-4 w-[75%] bg-slate-100" />
+      </div>
+
+      <div className="space-y-3 pt-4">
+        <Skeleton className="h-6 w-52 bg-slate-200/80 mb-3" />
+        <Skeleton className="h-4 w-full bg-slate-100" />
+        <Skeleton className="h-4 w-[90%] bg-slate-100" />
+      </div>
+    </div>
+  );
+}
+
+async function TermsConditionsBody() {
+  const dynamicContent = await getTermsConditionsContent();
+
+  if (!dynamicContent) {
+    return (
+      <div className="py-12 text-center text-sm text-neutral-400">
+        No terms &amp; conditions content available.
+      </div>
+    );
+  }
+
+  const updatedLabel = dynamicContent.updatedAt
+    ? dynamicContent.updatedAt.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+    : null;
+
+  return (
+    <>
+      {updatedLabel && (
+        <p className="text-[12px] text-[#3a2c22]/60" suppressHydrationWarning>
+          Last updated: {updatedLabel}
+        </p>
+      )}
+
+      <div
+        className="prose prose-slate mt-6 max-w-none prose-h1:mb-3 prose-h1:font-serif prose-h1:font-semibold prose-h2:text-[#6b3f22] prose-p:text-[13.5px] prose-p:leading-relaxed prose-a:underline"
+        dangerouslySetInnerHTML={{ __html: dynamicContent.body }}
+      />
+    </>
+  );
+}
+
+export default async function TermsPage() {
+  const banner = await getPageBanner("terms-conditions");
+
   return (
     <main>
       <PageBanner
-        imageSrc="/images/legal-banner.jpg"
-        title="Terms & Conditions"
+        imageSrc={banner?.image || "/images/legal-banner.jpg"}
+        title={banner?.title || "Terms & Conditions"}
         breadcrumb={[{ label: "Home", href: "/" }]}
       />
 
       <section className="bg-white py-14">
         <Container>
           <div className="mx-auto max-w-3xl">
-            <p className="text-[12px] text-[#3a2c22]/60">Last updated: {LAST_UPDATED}</p>
-
-            <p className="mt-4 text-[13.5px] leading-relaxed text-[#2b241f]/85">
-              These Terms &amp; Conditions (&quot;Terms&quot;) govern your use of the Najjar
-              Furniture website and your purchase of any products from us. Please read them
-              carefully before placing an order.
-            </p>
-
-            <div className="mt-10 space-y-9">
-              {SECTIONS.map((section) => (
-                <div key={section.heading}>
-                  <h2 className="text-lg font-semibold text-[#6b3f22]">{section.heading}</h2>
-                  <div className="mt-2.5 space-y-3">
-                    {section.body.map((paragraph, i) => (
-                      <p key={i} className="text-[13.5px] leading-relaxed text-[#2b241f]/80">
-                        {paragraph}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Suspense fallback={<TermsConditionsSkeleton />}>
+              <TermsConditionsBody />
+            </Suspense>
           </div>
         </Container>
       </section>

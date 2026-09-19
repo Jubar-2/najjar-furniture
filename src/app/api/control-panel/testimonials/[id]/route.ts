@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/services/Cloudinary";
 import Testimonial from "@/models/testimonials.model";
 import { TestimonialUpdateSchema, readTestimonialFromFormData } from "@/schemas/testimonial.schema";
+import { ApiResponse } from "@/lib/apiResponse";
 
-// PATCH /api/testimonials/:id
+// PATCH /api/control-panel/testimonials/:id
 // Updates only the fields actually sent — name, location, message and/or
 // avatar, independently of each other. An optional new avatar upload
 // replaces the previous one (old Cloudinary file is deleted).
@@ -19,22 +20,23 @@ export async function PATCH(req: NextRequest, { params }: RouteContext<"/api/con
     const parsed = TestimonialUpdateSchema.safeParse(raw);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-        { status: 422 }
+      return ApiResponse.error(
+        "Validation failed.",
+        422,
+        z.treeifyError(parsed.error)
       );
     }
 
     const { name, location, message, avatar } = parsed.data;
     if (name === undefined && location === undefined && message === undefined && avatar === undefined) {
-      return NextResponse.json({ error: "No fields provided to update." }, { status: 400 });
+      return ApiResponse.error("No fields provided to update.", 400);
     }
 
     await dbConnect();
 
     const testimonial = await Testimonial.findById(id);
     if (!testimonial) {
-      return NextResponse.json({ error: "Testimonial not found." }, { status: 404 });
+      return ApiResponse.error("Testimonial not found.", 404);
     }
 
     if (name !== undefined) testimonial.name = name;
@@ -44,7 +46,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext<"/api/con
     if (avatar) {
       const avatarCloud = await uploadOnCloudinary(avatar);
       if (!avatarCloud) {
-        return NextResponse.json({ error: "Avatar upload failed." }, { status: 502 });
+        return ApiResponse.error("Avatar upload failed.", 502);
       }
       const previousPublicId = testimonial.avatarPublicId;
       if (previousPublicId) {
@@ -56,14 +58,14 @@ export async function PATCH(req: NextRequest, { params }: RouteContext<"/api/con
 
     await testimonial.save();
 
-    return NextResponse.json({ data: testimonial }, { status: 200 });
+    return ApiResponse.success(testimonial);
   } catch (error) {
     console.error("PATCH /testimonials/:id failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }
 
-// DELETE /api/testimonials/:id
+// DELETE /api/control-panel/testimonials/:id
 export async function DELETE(_req: NextRequest, { params }: RouteContext<"/api/control-panel/testimonials/[id]">) {
   try {
     const { id } = await params;
@@ -72,16 +74,16 @@ export async function DELETE(_req: NextRequest, { params }: RouteContext<"/api/c
 
     const testimonial = await Testimonial.findByIdAndDelete(id).lean();
     if (!testimonial) {
-      return NextResponse.json({ error: "Testimonial not found." }, { status: 404 });
+      return ApiResponse.error("Testimonial not found.", 404);
     }
 
     if (testimonial.avatarPublicId) {
       await deleteUploadedFileOnCloudinary(testimonial.avatarPublicId, "image");
     }
 
-    return NextResponse.json({ data: { id } }, { status: 200 });
+    return ApiResponse.success({ id });
   } catch (error) {
     console.error("DELETE /testimonials/:id failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }

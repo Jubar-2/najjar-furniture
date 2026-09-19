@@ -16,11 +16,11 @@ export const useGetTestimonials = () => {
     return useQuery<Testimonial[]>({
         queryKey: HOME_TESTIMONIALS_QUERY_KEY,
         queryFn: async () => {
-            const { data } = await axios.get("/api/control-panel/testimonials");
+            const { data } = await axios.get("/api/testimonials");
             return data.data ?? [];
         },
         staleTime: 15 * 60 * 1000,
-        refetchOnWindowFocus: true,
+        refetchOnWindowFocus: false,
     });
 };
 

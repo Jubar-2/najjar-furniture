@@ -1,11 +1,17 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+export interface ISubImage {
+  url: string;
+  publicId?: string;
+}
+
 export interface IPortfolioItem extends Document {
   title: string;
   category?: string;
   description: string;
   image: string;
   imagePublicId: string;
+  subImages?: ISubImage[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +36,12 @@ const portfolioItemSchema = new Schema<IPortfolioItem>(
     imagePublicId: {
       type: String,
     },
+    subImages: [
+      {
+        url: { type: String, required: true },
+        publicId: { type: String, default: "" },
+      },
+    ],
   },
   {
     timestamps: true,

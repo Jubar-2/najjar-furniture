@@ -9,16 +9,16 @@ function formatName(name: string): string {
 
 export default function ConnectChannels({ socials }: { socials: SocialLink[] }) {
   return (
-    <section className="bg-white py-16">
+    <section className="bg-white py-10 sm:py-16">
       <Container>
         <div className="text-center">
-          <span className="inline-block rounded-full bg-[#f2ead9] px-3.5 py-1 text-[10.5px] font-medium text-[#6b3f22]">
+          <span className="inline-block rounded-full bg-[#f2ead9] px-3.5 py-1 text-[10px] sm:text-[10.5px] font-medium text-[#6b3f22]">
             Find Us Everywhere
           </span>
-          <h2 className="mt-3 text-3xl font-bold text-[#6b3f22] md:text-4xl">
+          <h2 className="mt-2.5 sm:mt-3 text-2xl sm:text-3xl md:text-4xl font-bold text-[#6b3f22] tracking-tight">
             Connect on Social Media
           </h2>
-          <p className="mx-auto mt-2 max-w-md text-[13px] text-[#3a2c22]/70">
+          <p className="mx-auto mt-2 max-w-md text-xs sm:text-[13px] leading-relaxed text-[#3a2c22]/70">
             Follow Najjar Furniture for the latest craftsmanship, warmth, tips, and updates.
           </p>
         </div>

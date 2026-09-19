@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import PageSection from "@/models/pageSections.model";
@@ -7,13 +7,10 @@ import { HeroSchema, HeroUpdatedSchema } from "@/schemas/hero.schema";
 import { deleteUploadedFileOnCloudinary, uploadOnCloudinary } from "@/services/Cloudinary";
 import { ApiResponse } from "@/lib/apiResponse";
 
-
 // POST /api/pages/:pageId/sections/banner
 // Creates a new banner section for a page. Body must match HeroSchema.
 export async function POST(req: NextRequest) {
-
     try {
-
         const formData = await req.formData();
 
         const parsed = HeroSchema.safeParse({
@@ -23,14 +20,14 @@ export async function POST(req: NextRequest) {
         });
 
         if (!parsed.success) {
-            return NextResponse.json(
-                { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-                { status: 422 }
+            return ApiResponse.error(
+                "Validation failed.",
+                422,
+                z.treeifyError(parsed.error)
             );
         }
 
         await dbConnect();
-
 
         const page = await PageModel.create({
             pageName: "home",
@@ -40,7 +37,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (!page) {
-            throw Error("Home page is not found")
+            return ApiResponse.error("Home page is not found.", 404);
         }
 
         const { heading, paragraph, banner } = parsed.data;
@@ -57,10 +54,10 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        return ApiResponse.success({ data: section });
+        return ApiResponse.success(section, "Hero banner created", 201);
     } catch (error) {
         console.error("POST /sections/banner failed:", error);
-        return ApiResponse.error("Something went wrong.", 500);
+        return ApiResponse.fatal("Something went wrong.");
     }
 }
 
@@ -76,56 +73,49 @@ export async function PATCH(req: NextRequest) {
         const rawParagraph = formData.get("paragraph");
 
         const parsed = HeroUpdatedSchema.safeParse({
-            // formData.get() returns "" for a missing text field and a zero-byte
-            // File for a missing file input — normalize both to `undefined` so
-            // .optional() actually treats "not sent" as "not sent".
             heading: rawHeading ? String(rawHeading) : undefined,
             paragraph: rawParagraph ? String(rawParagraph) : undefined,
             banner: rawBanner instanceof File && rawBanner.size > 0 ? rawBanner : undefined,
         });
 
         if (!parsed.success) {
-            return NextResponse.json(
-                { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-                { status: 422 }
+            return ApiResponse.error(
+                "Validation failed.",
+                422,
+                z.treeifyError(parsed.error)
             );
         }
 
         const { heading, paragraph, banner } = parsed.data;
 
         if (heading === undefined && paragraph === undefined && banner === undefined) {
-            return NextResponse.json({ error: "No fields provided to update." }, { status: 400 });
+            return ApiResponse.error("No fields provided to update.", 400);
         }
 
         await dbConnect();
 
         const page = await PageModel.findOne({ pageName: "home" });
         if (!page) {
-            throw new Error("Home page is not found");
+            return ApiResponse.error("Home page is not found.", 404);
         }
 
         const section = await PageSection.findOne({ pageId: page._id, type: "banner" });
         if (!section) {
-            return NextResponse.json({ error: "Banner section not found." }, { status: 404 });
+            return ApiResponse.error("Banner section not found.", 404);
         }
 
-        // Merge onto the existing content rather than replacing it wholesale,
-        // so a heading-only update doesn't wipe out the existing banner/paragraph.
         const updatedContent: Record<string, unknown> = { ...section.content };
 
         if (heading !== undefined) updatedContent.heading = heading;
         if (paragraph !== undefined) updatedContent.paragraph = paragraph;
-        console.log(banner)
+
         if (banner) {
             const bannerCloud = await uploadOnCloudinary(banner);
 
             if (!bannerCloud) {
-                return NextResponse.json({ error: "Banner upload failed." }, { status: 502 });
+                return ApiResponse.error("Banner upload failed.", 502);
             }
 
-            // Best-effort cleanup of the old asset so replacing a banner doesn't
-            // leave orphaned images sitting in your Cloudinary account. Requires
-            // the previous upload's public_id to have been stored — see note below.
             const previousPublicId = (section.content as { bannerPublicId?: string }).bannerPublicId;
             if (previousPublicId) {
                 await deleteUploadedFileOnCloudinary(previousPublicId, "image");
@@ -136,13 +126,12 @@ export async function PATCH(req: NextRequest) {
         }
 
         section.content = updatedContent;
-        section.markModified("content"); // Mixed fields need this — Mongoose won't
-        // detect in-place mutations otherwise.
+        section.markModified("content");
         await section.save();
 
-        return NextResponse.json({ data: section }, { status: 200 });
+        return ApiResponse.success(section);
     } catch (error) {
         console.error("PATCH /sections/banner failed:", error);
-        return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+        return ApiResponse.fatal("Something went wrong.");
     }
 }

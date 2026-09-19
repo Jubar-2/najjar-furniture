@@ -1,3 +1,5 @@
+"use client";
+
 import ContactAdmin from "@/components/control-panel/pages/contact-us/ContactAdmin";
 
 export default function PagesContactUs() {

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/services/Cloudinary";
@@ -10,37 +10,9 @@ import {
   HOME_LAYER_THREE_KEYS,
   readHomeLayerThreeFromFormData,
 } from "@/schemas/homeLayerThree.schema";
+import { ApiResponse } from "@/lib/apiResponse";
 
-// Keep this in one place — POST and PATCH were previously using two
-// different, mismatched type strings ("home-lear3" vs "home-lear2"),
-// which meant PATCH could never find the section POST had just created.
 const SECTION_TYPE = "home-layer-3";
-
-// GET /api/control-panel/page/home/layer3
-export async function GET() {
-  try {
-    await dbConnect();
-
-    const page = await PageModel.findOne({ pageName: "home" });
-    if (!page) {
-      return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
-    }
-
-    const section = await PageSection.findOne({
-      pageId: page._id,
-      type: SECTION_TYPE,
-    }).lean();
-
-    if (!section) {
-      return NextResponse.json({ error: "Layer 3 section not found." }, { status: 404 });
-    }
-
-    return NextResponse.json({ data: section }, { status: 200 });
-  } catch (error) {
-    console.error("GET /control-panel/page/home/layer3 failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
-  }
-}
 
 // POST /api/sections/home-layer-three
 // Creates the 6-item section. All 6 items are required.
@@ -52,9 +24,10 @@ export async function POST(req: NextRequest) {
     const parsed = HomeLayerThreeSchema.safeParse(rawItems);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-        { status: 422 }
+      return ApiResponse.error(
+        "Validation failed.",
+        422,
+        z.treeifyError(parsed.error)
       );
     }
 
@@ -62,20 +35,17 @@ export async function POST(req: NextRequest) {
 
     const page = await PageModel.findOne({ pageName: "home" });
     if (!page) {
-      return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
+      return ApiResponse.error("Home page is not found.", 404);
     }
 
     const content: Record<string, unknown> = {};
 
-    // Upload each of the 6 images and build content item-by-item — the
-    // original code never did this loop at all; it uploaded a single
-    // undefined `banner` and discarded all 6 items entirely.
     for (const key of HOME_LAYER_THREE_KEYS) {
       const { heading, paragraph, image } = parsed.data[key];
       const imageCloud = await uploadOnCloudinary(image);
 
       if (!imageCloud) {
-        return NextResponse.json({ error: `Upload failed for ${key}.` }, { status: 502 });
+        return ApiResponse.error(`Upload failed for ${key}.`, 502);
       }
 
       content[key] = {
@@ -92,16 +62,15 @@ export async function POST(req: NextRequest) {
       content,
     });
 
-    return NextResponse.json({ data: section }, { status: 201 });
+    return ApiResponse.success(section, "Layer 3 section created", 201);
   } catch (error) {
     console.error("POST /sections/home-layer-three failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }
 
 // PATCH /api/sections/home-layer-three
-// Updates only the items that were actually sent — untouched items keep
-// their existing content instead of being wiped or required on every call.
+// Updates only the items that were actually sent.
 export async function PATCH(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -110,28 +79,29 @@ export async function PATCH(req: NextRequest) {
     const parsed = HomeLayerThreeUpdateSchema.safeParse(rawItems);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-        { status: 422 }
+      return ApiResponse.error(
+        "Validation failed.",
+        422,
+        z.treeifyError(parsed.error)
       );
     }
 
     const providedKeys = HOME_LAYER_THREE_KEYS.filter((key) => parsed.data[key] !== undefined);
 
     if (providedKeys.length === 0) {
-      return NextResponse.json({ error: "No fields provided to update." }, { status: 400 });
+      return ApiResponse.error("No fields provided to update.", 400);
     }
 
     await dbConnect();
 
     const page = await PageModel.findOne({ pageName: "home" });
     if (!page) {
-      return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
+      return ApiResponse.error("Home page is not found.", 404);
     }
 
     const section = await PageSection.findOne({ pageId: page._id, type: SECTION_TYPE });
     if (!section) {
-      return NextResponse.json({ error: "Section not found." }, { status: 404 });
+      return ApiResponse.error("Section not found.", 404);
     }
 
     const updatedContent: Record<string, any> = { ...section.content };
@@ -143,10 +113,9 @@ export async function PATCH(req: NextRequest) {
       const imageCloud = await uploadOnCloudinary(item.image);
 
       if (!imageCloud) {
-        return NextResponse.json({ error: `Upload failed for ${key}.` }, { status: 502 });
+        return ApiResponse.error(`Upload failed for ${key}.`, 502);
       }
 
-      // Best-effort cleanup of the replaced image's old asset.
       const previousPublicId = updatedContent[key]?.imagePublicId;
       if (previousPublicId) {
         await deleteUploadedFileOnCloudinary(previousPublicId, "image");
@@ -161,13 +130,12 @@ export async function PATCH(req: NextRequest) {
     }
 
     section.content = updatedContent;
-    section.markModified("content"); // Mixed fields need this — Mongoose
-                                      // won't detect in-place mutations otherwise.
+    section.markModified("content");
     await section.save();
 
-    return NextResponse.json({ data: section }, { status: 200 });
+    return ApiResponse.success(section);
   } catch (error) {
     console.error("PATCH /sections/home-layer-three failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }

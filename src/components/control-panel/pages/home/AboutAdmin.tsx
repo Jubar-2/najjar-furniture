@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ImageUpload from "@/components/control-panel/pages/ImageUpload";
@@ -26,23 +27,36 @@ export default function AboutAdmin() {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const hasInitializedRef = useRef(false);
 
     // ── Fetch ──────────────────────────────────────────────────────────────
     const { data: content, isLoading } = useQuery<AboutContent | null>({
         queryKey: QUERY_KEY,
         queryFn: async () => {
-            const res = await fetch("/api/control-panel/page/home/about");
-            if (res.status === 404) return null; // section doesn't exist yet
-            if (!res.ok) {
-                const json = await res.json();
-                throw new Error(json.error ?? "Failed to load.");
+            try {
+                const { data } = await axios.get("/api/page/home/about");
+                return data.data?.content ?? null;
+            } catch (err: unknown) {
+                if (axios.isAxiosError(err) && err.response?.status === 404) {
+                    return null; // section doesn't exist yet
+                }
+                const message = axios.isAxiosError(err)
+                    ? (err.response?.data?.message ?? err.response?.data?.error ?? err.message)
+                    : "Failed to load.";
+                throw new Error(message);
             }
-            const json = await res.json();
-            const c: AboutContent = json.data?.content ?? null;
-            if (c) setParagraph(c.paragraph ?? "");
-            return c;
         },
+        staleTime: 15 * 60 * 1000,
+        refetchOnWindowFocus: false,
     });
+
+    // Populate paragraph once when content is loaded
+    useEffect(() => {
+        if (content && !hasInitializedRef.current) {
+            setParagraph(content.paragraph ?? "");
+            hasInitializedRef.current = true;
+        }
+    }, [content]);
 
     // ── Save ───────────────────────────────────────────────────────────────
     const mutation = useMutation({
@@ -69,18 +83,21 @@ export default function AboutAdmin() {
             if (imageFile) formData.append("image", imageFile);
 
             // PATCH creates the section on first save and updates it afterward.
-            const res = await fetch("/api/control-panel/page/home/about", {
-                method: "PATCH",
-                body: formData,
-            });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error ?? "Save failed.");
-            return json;
+            try {
+                const { data } = await axios.patch("/api/control-panel/page/home/about", formData);
+                return data;
+            } catch (err: unknown) {
+                const message = axios.isAxiosError(err)
+                    ? (err.response?.data?.message ?? err.response?.data?.error ?? err.message)
+                    : (err instanceof Error ? err.message : "Save failed.");
+                throw new Error(message);
+            }
         },
         onSuccess: () => {
             setSuccess(true);
             setError(null);
             setImageFile(null);
+            hasInitializedRef.current = false;
             queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         },
         onError: (err) => {

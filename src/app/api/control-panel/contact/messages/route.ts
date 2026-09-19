@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import dbConnect from "@/db/dbConnect";
 import ContactMessage from "@/models/contactMessage.model";
+import { ApiResponse } from "@/lib/apiResponse";
 
 // GET /api/control-panel/contact/messages
 // Lists all submitted messages, most recent first.
@@ -12,9 +12,9 @@ export async function GET() {
       .sort({ createdAt: -1 })
       .lean();
 
-    return NextResponse.json({ data: messages }, { status: 200 });
+    return ApiResponse.success(messages);
   } catch (error) {
     console.error("GET /contact/messages failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }

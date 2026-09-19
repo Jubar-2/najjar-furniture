@@ -17,11 +17,11 @@ export const useGetGallery = () => {
     return useQuery<GalleryContent>({
         queryKey: HOME_GALLERY_QUERY_KEY,
         queryFn: async () => {
-            const { data } = await axios.get("/api/control-panel/page/home/gallary");
+            const { data } = await axios.get("/api/page/home/gallary");
             return data.data?.content || { images: [], imagesSub: [] };
         },
         staleTime: 15 * 60 * 1000,
-        refetchOnWindowFocus: true,
+        refetchOnWindowFocus: false,
     });
 };
 

@@ -1,7 +1,12 @@
 "use client";
 
-import { QueryClient, QueryClientProvider as QueryClientWrapper } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider as QueryClientWrapper, focusManager } from "@tanstack/react-query";
 import { useState } from "react";
+
+if (typeof window !== "undefined") {
+    // Disable window focus listener to prevent background refetches when switching browser tabs
+    focusManager.setEventListener(() => () => {});
+}
 
 export default function QueryClientProvider({ children }: { children: React.ReactNode }) {
     // useState (not a plain `new QueryClient()`) so the client is created
@@ -14,6 +19,7 @@ export default function QueryClientProvider({ children }: { children: React.Reac
                 defaultOptions: {
                     queries: {
                         staleTime: 60 * 1000, // 1 minute — avoid instant refetch-on-mount right after hydration
+                        refetchOnWindowFocus: false, // Prevent background refetches when switching browser tabs
                     },
                 },
             })

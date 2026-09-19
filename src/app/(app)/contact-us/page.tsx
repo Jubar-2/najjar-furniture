@@ -6,6 +6,7 @@ import ContactCTA from "@/components/app/contactUs/Contactcta";
 import Footer from "@/components/app/Footer";
 import { getContactSection } from "./contact.server";
 import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
+import { getPageBanner } from "@/lib/getPageBanner";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,13 +14,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ContactPage() {
-  const contact = await getContactSection();
+  const [contact, banner] = await Promise.all([
+    getContactSection(),
+    getPageBanner("contact"),
+  ]);
 
   return (
     <main>
       <PageBanner
-        imageSrc="/images/contact-banner.jpg"
-        title="Contact Us"
+        imageSrc={banner?.image || "/images/contact-banner.jpg"}
+        title={banner?.title || "Contact Us"}
         breadcrumb={[{ label: "Home", href: "/" }]}
       />
 

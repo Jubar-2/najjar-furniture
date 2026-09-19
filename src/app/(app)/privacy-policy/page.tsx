@@ -1,11 +1,14 @@
 import PageBanner from "@/components/app/PageBanner";
 import Container from "@/components/utils/Container";
 import Footer from "@/components/app/Footer";
+import axios from "axios";
 import dbConnect from "@/db/dbConnect";
 import PageModel from "@/models/page.model";
 import PageSection from "@/models/pageSections.model";
 import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
+import { getPageBanner } from "@/lib/getPageBanner";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata(await getPageMeta("privacy-policy"));
@@ -79,89 +82,118 @@ const SECTIONS = [
   },
 ];
 
+async function getBaseUrl() {
+  const hdrs = await headers();
+  const host = hdrs.get("host") ?? "localhost:3000";
+  const proto = hdrs.get("x-forwarded-proto") ?? "http";
+  return `${proto}://${host}`;
+}
+
 async function getPrivacyPolicyContent() {
-    try {
-        await dbConnect();
-
-        const page = await PageModel.findOne({ pageName: "privacy-policy" });
-        if (!page) return null;
-
-        const section = await PageSection.findOne({
-            pageId: page._id,
-            type: "privacy-policy",
-            isActive: true,
-        }).lean();
-
-        const body = section?.content?.body;
-        if (typeof body !== "string" || !body.trim()) return null;
-
-        return {
-            body,
-            updatedAt: section?.updatedAt ? new Date(section.updatedAt) : null,
-        };
-    } catch (error) {
-        console.error("Failed to load privacy policy content:", error);
-        return null;
+  // 1. Fetch via /api/page/privacy-policy route
+  try {
+    const baseUrl = await getBaseUrl();
+    const { data } = await axios.get(`${baseUrl}/api/page/privacy-policy`);
+    const body = data.data?.content?.body;
+    if (typeof body === "string" && body.trim()) {
+      return {
+        body,
+        updatedAt: data.data?.updatedAt ? new Date(data.data.updatedAt) : null,
+      };
     }
+  } catch (error) {
+    console.error("Fetch from /api/page/privacy-policy failed, using fallback:", error);
+  }
+
+  // 2. Direct database fallback if fetch is not reachable
+  try {
+    await dbConnect();
+
+    const page = await PageModel.findOne({ pageName: "privacy-policy" });
+    if (!page) return null;
+
+    const section = await PageSection.findOne({
+      pageId: page._id,
+      type: "privacy-policy",
+      isActive: true,
+    }).lean();
+
+    const body = section?.content?.body;
+    if (typeof body !== "string" || !body.trim()) return null;
+
+    return {
+      body,
+      updatedAt: section?.updatedAt ? new Date(section.updatedAt) : null,
+    };
+  } catch (error) {
+    console.error("Failed to load privacy policy content from database:", error);
+    return null;
+  }
 }
 
 export default async function PrivacyPolicyPage() {
-    const dynamicContent = await getPrivacyPolicyContent();
-    const updatedLabel = dynamicContent?.updatedAt
-        ? dynamicContent.updatedAt.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-          })
-        : LAST_UPDATED;
+  const [dynamicContent, banner] = await Promise.all([
+    getPrivacyPolicyContent(),
+    getPageBanner("privacy-policy"),
+  ]);
 
-    return (
-        <main>
-            <PageBanner
-                imageSrc="/images/legal-banner.jpg"
-                title="Privacy Policy"
-                breadcrumb={[{ label: "Home", href: "/" }]}
-            />
+  const updatedLabel = dynamicContent?.updatedAt
+    ? dynamicContent.updatedAt.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+    : LAST_UPDATED;
 
-            <section className="bg-white py-14">
-                <Container>
-                    <div className="mx-auto max-w-3xl">
-                        <p className="text-[12px] text-[#3a2c22]/60">Last updated: {updatedLabel}</p>
+  return (
+    <main>
+      <PageBanner
+        imageSrc={banner?.image || "/images/legal-banner.jpg"}
+        title={banner?.title || "Privacy Policy"}
+        breadcrumb={[{ label: "Home", href: "/" }]}
+      />
 
-                        {dynamicContent ? (
-                            <div
-                                className="prose prose-slate mt-6 max-w-none prose-h1:mb-3 prose-h1:font-serif prose-h1:font-semibold prose-h1:text-[#6b3f22] prose-h2:mb-3 prose-h2:font-serif prose-h2:font-semibold prose-h2:text-[#6b3f22] prose-h3:mb-2 prose-h3:font-serif prose-h3:font-semibold prose-h3:text-[#6b3f22] prose-p:text-[13.5px] prose-p:leading-relaxed prose-p:text-[#2b241f]/80 prose-li:text-[13.5px] prose-li:leading-relaxed prose-li:text-[#2b241f]/80 prose-a:text-[#6b3f22] prose-a:underline prose-strong:text-[#2b241f] prose-em:text-[#2b241f]"
-                                dangerouslySetInnerHTML={{ __html: dynamicContent.body }}
-                            />
-                        ) : (
-                            <>
-                                <p className="mt-4 text-[13.5px] leading-relaxed text-[#2b241f]/85">
-                                    Najjar Furniture (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) is committed to
-                                    protecting your privacy. This Privacy Policy explains how we collect, use, disclose,
-                                    and safeguard your information when you visit our website or make a purchase from us.
-                                </p>
+      <section className="bg-white py-14">
+        <Container>
+          <div className="mx-auto max-w-3xl">
+            <p className="text-[12px] text-[#3a2c22]/60" suppressHydrationWarning>
+              Last updated: {updatedLabel}
+            </p>
 
-                                <div className="mt-10 space-y-9">
-                                    {SECTIONS.map((section) => (
-                                        <div key={section.heading}>
-                                            <h2 className="text-lg font-semibold text-[#6b3f22]">{section.heading}</h2>
-                                            <div className="mt-2.5 space-y-3">
-                                                {section.body.map((paragraph, i) => (
-                                                    <p key={i} className="text-[13.5px] leading-relaxed text-[#2b241f]/80">
-                                                        {paragraph}
-                                                    </p>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
+            {dynamicContent ? (
+              <div
+                className="prose prose-slate mt-6 max-w-none prose-h2:mb-3 prose-h2:font-serif prose-h2:font-semibold prose-h2:text-[#6b3f22] prose-p:text-[13.5px] prose-p:leading-relaxed prose-a:underline"
+                dangerouslySetInnerHTML={{ __html: dynamicContent.body }}
+              />
+            ) : (
+              <>
+                <p className="mt-4 text-[13.5px] leading-relaxed text-[#2b241f]/85">
+                  Najjar Furniture (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) is committed to
+                  protecting your privacy. This Privacy Policy explains how we collect, use, disclose,
+                  and safeguard your information when you visit our website or make a purchase from us.
+                </p>
+
+                <div className="mt-10 space-y-9">
+                  {SECTIONS.map((section) => (
+                    <div key={section.heading}>
+                      <h2 className="text-lg font-semibold text-[#6b3f22]">{section.heading}</h2>
+                      <div className="mt-2.5 space-y-3">
+                        {section.body.map((paragraph, i) => (
+                          <p key={i} className="text-[13.5px] leading-relaxed text-[#2b241f]/80">
+                            {paragraph}
+                          </p>
+                        ))}
+                      </div>
                     </div>
-                </Container>
-            </section>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </Container>
+      </section>
 
-            <Footer />
-        </main>
-    );
+      <Footer />
+    </main>
+  );
 }

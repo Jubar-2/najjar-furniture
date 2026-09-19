@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -9,12 +10,20 @@ import { SidebarContent } from './SidebarContent';
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setMobileOpen(false);
+  }
 
   return (
     <>
       {/* --- MOBILE VIEW: HAMBURGER TRIGGER --- */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Sheet>
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger
             render={
               <Button variant="outline" size="icon" className="bg-white shadow-md rounded-xl">

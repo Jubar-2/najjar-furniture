@@ -18,7 +18,7 @@ export const useGetBanner = () => {
             return data.data?.content;
         },
         staleTime: 15 * 60 * 1000,
-        refetchOnWindowFocus: true,
+        refetchOnWindowFocus: false,
     });
 }
 

@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/services/Cloudinary";
 import PortfolioItem from "@/models/portfolioItem.model";
 import { PortfolioItemUpdateSchema, readPortfolioItemFromFormData } from "@/schemas/portfolioItem.schema";
+import { ApiResponse } from "@/lib/apiResponse";
 
 // PATCH /api/control-panel/portfolio/:id
 // Updates only the fields actually sent — title, category, description
@@ -19,22 +20,29 @@ export async function PATCH(req: NextRequest, { params }: RouteContext<"/api/con
     const parsed = PortfolioItemUpdateSchema.safeParse(raw);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-        { status: 422 }
+      return ApiResponse.error(
+        "Validation failed.",
+        422,
+        z.treeifyError(parsed.error)
       );
     }
 
     const { title, category, description, image } = parsed.data;
-    if (title === undefined && category === undefined && description === undefined && image === undefined) {
-      return NextResponse.json({ error: "No fields provided to update." }, { status: 400 });
+    if (
+      title === undefined &&
+      category === undefined &&
+      description === undefined &&
+      image === undefined &&
+      !raw.hasSubImages
+    ) {
+      return ApiResponse.error("No fields provided to update.", 400);
     }
 
     await dbConnect();
 
     const item = await PortfolioItem.findById(id);
     if (!item) {
-      return NextResponse.json({ error: "Portfolio item not found." }, { status: 404 });
+      return ApiResponse.error("Portfolio item not found.", 404);
     }
 
     if (title !== undefined) item.title = title;
@@ -44,7 +52,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext<"/api/con
     if (image) {
       const imageCloud = await uploadOnCloudinary(image);
       if (!imageCloud) {
-        return NextResponse.json({ error: "Image upload failed." }, { status: 502 });
+        return ApiResponse.error("Image upload failed.", 502);
       }
       const previousPublicId = item.imagePublicId as string | undefined;
       if (previousPublicId) {
@@ -54,12 +62,52 @@ export async function PATCH(req: NextRequest, { params }: RouteContext<"/api/con
       item.imagePublicId = imageCloud.public_id;
     }
 
+    // Handle sub-images update
+    if (raw.hasSubImages) {
+      const currentSubImages = item.subImages || [];
+      const updatedSubImages: Array<{ url: string; publicId: string }> = [];
+
+      for (let i = 0; i < 3; i++) {
+        const slot = raw.subImages[i];
+        if (slot?.file) {
+          const subCloud = await uploadOnCloudinary(slot.file);
+          if (subCloud) {
+            // Delete replaced old image if it existed
+            const oldPublicId = currentSubImages[i]?.publicId;
+            if (oldPublicId) {
+              await deleteUploadedFileOnCloudinary(oldPublicId, "image");
+            }
+            updatedSubImages.push({
+              url: subCloud.secure_url,
+              publicId: subCloud.public_id,
+            });
+          }
+        } else if (slot?.url) {
+          const existing =
+            currentSubImages.find((s) => s.url === slot.url) ||
+            currentSubImages[i] || { url: slot.url, publicId: "" };
+          updatedSubImages.push({
+            url: existing.url,
+            publicId: existing.publicId || "",
+          });
+        } else {
+          // Slot was removed
+          const oldPublicId = currentSubImages[i]?.publicId;
+          if (oldPublicId) {
+            await deleteUploadedFileOnCloudinary(oldPublicId, "image");
+          }
+        }
+      }
+
+      item.subImages = updatedSubImages;
+    }
+
     await item.save();
 
-    return NextResponse.json({ data: item }, { status: 200 });
+    return ApiResponse.success(item);
   } catch (error) {
     console.error("PATCH /control-panel/portfolio/:id failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }
 
@@ -72,16 +120,24 @@ export async function DELETE(_req: NextRequest, { params }: RouteContext<"/api/c
 
     const item = await PortfolioItem.findByIdAndDelete(id).lean();
     if (!item) {
-      return NextResponse.json({ error: "Portfolio item not found." }, { status: 404 });
+      return ApiResponse.error("Portfolio item not found.", 404);
     }
 
     if (item.imagePublicId) {
       await deleteUploadedFileOnCloudinary(item.imagePublicId, "image");
     }
 
-    return NextResponse.json({ data: { id } }, { status: 200 });
+    if (Array.isArray(item.subImages)) {
+      for (const sub of item.subImages) {
+        if (sub && sub.publicId) {
+          await deleteUploadedFileOnCloudinary(sub.publicId, "image");
+        }
+      }
+    }
+
+    return ApiResponse.success({ id });
   } catch (error) {
     console.error("DELETE /control-panel/portfolio/:id failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }

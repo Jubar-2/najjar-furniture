@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
 import dbConnect from "@/db/dbConnect";
 import PageModel from "@/models/page.model";
 import { SITE_PAGES } from "@/lib/sitePages";
+import { ApiResponse } from "@/lib/apiResponse";
 
-// GET /api/control-panel/meta
+// GET /api/meta
 // Returns the meta settings (title, meta description, keywords, og image,
 // author) for every public page. Pages that don't have a Page record yet
 // come back with their defaults so the editor always shows a complete list.
@@ -33,9 +33,9 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ data }, { status: 200 });
+    return ApiResponse.success(data);
   } catch (error) {
-    console.error("GET /control-panel/meta failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    console.error("GET /meta failed:", error);
+    return ApiResponse.fatal("Something went wrong.");
   }
 }

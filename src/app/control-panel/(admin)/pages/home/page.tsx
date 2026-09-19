@@ -1,4 +1,6 @@
-import About from "@/components/control-panel/pages/home/About";
+"use client";
+
+import AboutAdmin from "@/components/control-panel/pages/home/AboutAdmin";
 import Banner from "@/components/control-panel/pages/home/Banner";
 import GalleryAdmin from "@/components/control-panel/pages/home/GalleryControl";
 import HomeLayersAdmin from "@/components/control-panel/pages/home/HomeLayersAdmin";
@@ -13,24 +15,13 @@ export default function PagesHome() {
                 <PageTabs
                     tabs={[
                         { key: "banner", label: "Banner", content: <Banner /> },
-                         { key: "home-layers", label: "Home Layers", content: <HomeLayersAdmin /> },
+                        { key: "home-layers", label: "Home Layers", content: <HomeLayersAdmin /> },
                         { key: "gallery", label: "Gallery", content: <GalleryAdmin /> },
                         { key: "portfolio", label: "Portfolio", content: <PortfolioAdmin /> },
-                        { key: "about", label: "About", content: <About /> },
-                        { key: "settings", label: "Settings", content: <SettingsLayer /> },
+                        { key: "about", label: "About", content: <AboutAdmin /> },
                     ]}
                 />
             </main>
         </>
     );
-}
-
-
-
-
-function AnalyticsLayer() {
-    return <div>Analytics content...</div>;
-}
-function SettingsLayer() {
-    return <div>Settings content...</div>;
 }

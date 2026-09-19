@@ -25,24 +25,30 @@ export default function WoodFurnitureBanner({
     ctaHref = "/collection/wood-furniture",
 }: WoodFurnitureBannerProps) {
     return (
-        <section className={`w-full ${backgroundColor} mt-5 pb-5`}>
+        <section className={`w-full ${backgroundColor} mt-4 sm:mt-6 pb-6 sm:pb-10`}>
             <Container>
-                <div className="flex flex-col items-center pt-10 text-center md:pt-14 pb-6">
-                    <h2 className={`text-[48px] font-bold ${headingColor} md:text-[1.75rem]`}>
+                <div className="flex flex-col items-center pt-8 sm:pt-12 md:pt-14 pb-4 sm:pb-6 text-center">
+                    <h2 className={`text-2xl sm:text-3xl md:text-4xl lg:text-[44px] font-bold tracking-tight ${headingColor}`}>
                         {title}
                     </h2>
-                    <p className={`mt-2 max-w-sm text-[13px] leading-relaxed ${descriptionColor}`}>
+                    <p className={`mt-2 sm:mt-3 max-w-sm sm:max-w-md text-xs sm:text-[13.5px] leading-relaxed ${descriptionColor}`}>
                         {description}
                     </p>
-                    <Link
+                    {/* <Link
                         href={ctaHref}
-                        className="mt-4 rounded-full border border-[#3a2c22]/30 px-5 py-1.5 text-[10px] font-medium tracking-wide text-[#3a2c22] transition-colors hover:border-[#3a2c22] hover:bg-[#3a2c22] hover:text-[#f5efe4]"
+                        className="mt-4 rounded-full border border-[#3a2c22]/30 px-5 sm:px-6 py-2 text-[10px] sm:text-[11px] font-semibold tracking-wider text-[#3a2c22] transition-all hover:border-[#3a2c22] hover:bg-[#3a2c22] hover:text-[#f5efe4]"
                     >
                         {ctaLabel.toUpperCase()}
-                    </Link>
+                    </Link> */}
                 </div>
-                <div className="w-full flex items-center justify-center">
-                    <Image src={imageSrc} alt="Wood Furniture" width={735} height={520}/>
+                <div className="w-full flex items-center justify-center px-2 sm:px-0">
+                    <Image
+                        src={imageSrc}
+                        alt={title || "Wood Furniture"}
+                        width={735}
+                        height={520}
+                        className="w-full max-w-183.75 h-auto object-contain"
+                    />
                 </div>
             </Container>
         </section>

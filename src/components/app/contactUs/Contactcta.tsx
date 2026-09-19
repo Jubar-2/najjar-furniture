@@ -18,20 +18,20 @@ export default function ContactCTA({
   ctaHref = "https://wa.me/8801XXXXXXXXX",
 }: ContactCTAProps) {
   return (
-    <section className="bg-[#fdf6ee] py-16">
+    <section className="bg-[#fdf6ee] py-10 sm:py-16">
       <Container>
-        <div className="flex flex-col items-center gap-4 rounded-3xl bg-[#2c160d] px-6 py-14 text-center">
+        <div className="flex flex-col items-center gap-3 sm:gap-4 rounded-2xl sm:rounded-3xl bg-[#2c160d] px-4 sm:px-6 py-10 sm:py-14 text-center">
           <span className="flex size-11 items-center justify-center rounded-full bg-[#c9a06a] text-[#2c160d]">
             <MessageCircle className="size-5" />
           </span>
 
-          <h2 className="text-2xl font-bold text-[#f2ead9] md:text-3xl">{title}</h2>
-          <p className="text-lg font-semibold text-[#c9a06a]">{subtitle}</p>
-          <p className="max-w-md text-[13px] leading-relaxed text-[#f2ead9]/70">{description}</p>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#f2ead9]">{title}</h2>
+          <p className="text-base sm:text-lg font-semibold text-[#c9a06a]">{subtitle}</p>
+          <p className="max-w-md text-xs sm:text-[13px] leading-relaxed text-[#f2ead9]/75">{description}</p>
 
           <Link
             href={ctaHref}
-            className="mt-3 inline-flex items-center gap-2.5 rounded-full bg-[#c9a06a] px-6 py-3 text-[12px] font-semibold text-[#2c160d] transition-colors hover:bg-[#d9b27f]"
+            className="mt-2 sm:mt-3 inline-flex items-center gap-2.5 rounded-full bg-[#c9a06a] px-6 py-3 text-xs sm:text-[13px] font-semibold text-[#2c160d] transition-colors hover:bg-[#d9b27f]"
           >
             {ctaLabel}
           </Link>

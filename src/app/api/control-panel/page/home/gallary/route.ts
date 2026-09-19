@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/services/Cloudinary";
@@ -10,6 +10,7 @@ import {
     readGalleryFromFormData,
     type GalleryImage,
 } from "@/schemas/galleryImage.schema";
+import { ApiResponse } from "@/lib/apiResponse";
 
 const SECTION_TYPE = "gallery";
 
@@ -20,40 +21,6 @@ async function uploadMany(files: File[]): Promise<GalleryImage[] | null> {
     if (results.some((r) => !r)) return null; // at least one upload failed
 
     return results.map((r) => ({ url: r!.secure_url, publicId: r!.public_id }));
-}
-
-// GET /api/sections/gallery
-// Returns the gallery section (both image rows) for the home page.
-export async function GET() {
-    try {
-        await dbConnect();
-
-        const page = await PageModel.findOne({ pageName: "home" });
-        if (!page) {
-            return NextResponse.json(
-                { data: { content: { images: [], imagesSub: [] } } },
-                { status: 200 }
-            );
-        }
-
-        const section = await PageSection.findOne({
-            pageId: page._id,
-            type: SECTION_TYPE,
-            isActive: true,
-        }).lean();
-
-        if (!section || !section.content) {
-            return NextResponse.json(
-                { data: { content: { images: [], imagesSub: [] } } },
-                { status: 200 }
-            );
-        }
-
-        return NextResponse.json({ data: section }, { status: 200 });
-    } catch (error) {
-        console.error("GET /sections/gallery failed:", error);
-        return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
-    }
 }
 
 // POST /api/sections/gallery
@@ -69,9 +36,10 @@ export async function POST(req: NextRequest) {
         const parsed = GallerySchema.safeParse(raw);
 
         if (!parsed.success) {
-            return NextResponse.json(
-                { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-                { status: 422 }
+            return ApiResponse.error(
+                "Validation failed.",
+                422,
+                z.treeifyError(parsed.error)
             );
         }
 
@@ -79,7 +47,7 @@ export async function POST(req: NextRequest) {
 
         const page = await PageModel.findOne({ pageName: "home" });
         if (!page) {
-            return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
+            return ApiResponse.error("Home page is not found.", 404);
         }
 
         const [images, imagesSub] = await Promise.all([
@@ -88,7 +56,7 @@ export async function POST(req: NextRequest) {
         ]);
 
         if (!images || !imagesSub) {
-            return NextResponse.json({ error: "One or more uploads failed." }, { status: 502 });
+            return ApiResponse.error("One or more uploads failed.", 502);
         }
 
         const section = await PageSection.create({
@@ -97,10 +65,10 @@ export async function POST(req: NextRequest) {
             content: { images, imagesSub },
         });
 
-        return NextResponse.json({ data: section }, { status: 201 });
+        return ApiResponse.success(section, "Gallery section created", 201);
     } catch (error) {
         console.error("POST /sections/gallery failed:", error);
-        return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+        return ApiResponse.fatal("Something went wrong.");
     }
 }
 
@@ -118,18 +86,19 @@ export async function PATCH(req: NextRequest) {
         });
 
         if (!parsed.success) {
-            return NextResponse.json(
-                { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-                { status: 422 }
+            return ApiResponse.error(
+                "Validation failed.",
+                422,
+                z.treeifyError(parsed.error)
             );
         }
 
         const { images: newImages, imagesSub: newImagesSub } = parsed.data;
 
         if (!newImages && !newImagesSub) {
-            return NextResponse.json(
-                { error: "No images provided — send files under \"images\" and/or \"imagesSub\"." },
-                { status: 400 }
+            return ApiResponse.error(
+                "No images provided — send files under \"images\" and/or \"imagesSub\".",
+                400
             );
         }
 
@@ -161,7 +130,7 @@ export async function PATCH(req: NextRequest) {
         if (newImages) {
             const uploaded = await uploadMany(newImages);
             if (!uploaded) {
-                return NextResponse.json({ error: "One or more image uploads failed." }, { status: 502 });
+                return ApiResponse.error("One or more image uploads failed.", 502);
             }
             content.images = [...content.images, ...uploaded];
         }
@@ -169,7 +138,7 @@ export async function PATCH(req: NextRequest) {
         if (newImagesSub) {
             const uploaded = await uploadMany(newImagesSub);
             if (!uploaded) {
-                return NextResponse.json({ error: "One or more sub-image uploads failed." }, { status: 502 });
+                return ApiResponse.error("One or more sub-image uploads failed.", 502);
             }
             content.imagesSub = [...content.imagesSub, ...uploaded];
         }
@@ -178,10 +147,10 @@ export async function PATCH(req: NextRequest) {
         section.markModified("content");
         await section.save();
 
-        return NextResponse.json({ data: section }, { status: 200 });
+        return ApiResponse.success(section, "Gallery updated successfully", 200);
     } catch (error) {
         console.error("PATCH /sections/gallery failed:", error);
-        return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+        return ApiResponse.fatal("Something went wrong.");
     }
 }
 
@@ -194,9 +163,9 @@ export async function DELETE(req: NextRequest) {
         const row = req.nextUrl.searchParams.get("row"); // "images" | "imagesSub"
 
         if (!publicId || (row !== "images" && row !== "imagesSub")) {
-            return NextResponse.json(
-                { error: "Query params \"publicId\" and \"row\" (images | imagesSub) are required." },
-                { status: 400 }
+            return ApiResponse.error(
+                "Query params \"publicId\" and \"row\" (images | imagesSub) are required.",
+                400
             );
         }
 
@@ -204,12 +173,12 @@ export async function DELETE(req: NextRequest) {
 
         const page = await PageModel.findOne({ pageName: "home" });
         if (!page) {
-            return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
+            return ApiResponse.error("Home page is not found.", 404);
         }
 
         const section = await PageSection.findOne({ pageId: page._id, type: SECTION_TYPE });
         if (!section) {
-            return NextResponse.json({ error: "Gallery section not found." }, { status: 404 });
+            return ApiResponse.error("Gallery section not found.", 404);
         }
 
         const content = section.content as { images: GalleryImage[]; imagesSub: GalleryImage[] };
@@ -217,7 +186,7 @@ export async function DELETE(req: NextRequest) {
         content[row] = content[row].filter((img) => img.publicId !== publicId);
 
         if (content[row].length === before) {
-            return NextResponse.json({ error: "Image not found in that row." }, { status: 404 });
+            return ApiResponse.error("Image not found in that row.", 404);
         }
 
         await deleteUploadedFileOnCloudinary(publicId, "image");
@@ -226,9 +195,9 @@ export async function DELETE(req: NextRequest) {
         section.markModified("content");
         await section.save();
 
-        return NextResponse.json({ data: section }, { status: 200 });
+        return ApiResponse.success(section, "Gallery image deleted successfully", 200);
     } catch (error) {
         console.error("DELETE /sections/gallery failed:", error);
-        return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+        return ApiResponse.fatal("Something went wrong.");
     }
 }

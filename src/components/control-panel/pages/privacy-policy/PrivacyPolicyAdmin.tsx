@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TiptapEditor from "@/components/control-panel/pages/TiptapEditor";
@@ -16,13 +16,21 @@ export default function PrivacyPolicyAdmin() {
     const { data, isLoading } = useGetPageContent(PAGE_NAME);
     const saveMutation = useSavePageContent(PAGE_NAME);
 
-    const editorHtml = useRef<string>("");
+    const [content, setContent] = useState<string | null>(null);
+    const hasInitializedRef = useRef(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+    useEffect(() => {
+        if (data && !hasInitializedRef.current) {
+            setContent(data.body ?? "");
+            hasInitializedRef.current = true;
+        }
+    }, [data]);
 
     const handleSave = async () => {
         setMessage(null);
 
-        const html = editorHtml.current || data?.body || "";
+        const html = content ?? data?.body ?? "";
 
         if (!html.replace(/<[^>]*>/g, "").trim()) {
             setMessage({ type: "error", text: "Content is required." });
@@ -31,6 +39,7 @@ export default function PrivacyPolicyAdmin() {
 
         try {
             await saveMutation.mutateAsync(html);
+            hasInitializedRef.current = false;
             setMessage({ type: "success", text: "Saved." });
         } catch (err) {
             setMessage({ type: "error", text: err instanceof Error ? err.message : "Save failed." });
@@ -68,9 +77,9 @@ export default function PrivacyPolicyAdmin() {
                 <p className="text-sm text-neutral-500">Loading…</p>
             ) : (
                 <TiptapEditor
-                    content={data?.body ?? ""}
+                    content={content ?? data?.body ?? ""}
                     onChange={(html) => {
-                        editorHtml.current = html;
+                        setContent(html);
                     }}
                     placeholder="Write privacy policy content..."
                 />

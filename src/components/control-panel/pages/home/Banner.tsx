@@ -1,30 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ImageUpload from "@/components/control-panel/pages/ImageUpload";
 import { useGetBanner, useUpdateBanner } from "@/customHooks/getBanner";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 function Banner() {
     const [file, setFile] = useState<File | null>(null);
     const { data, isLoading } = useGetBanner();
-    const { mutate } = useUpdateBanner()
-    const [draft, setDraft] = useState<{ heading: string; paragraph: string } | null>(null)
+    const { mutate, isPending } = useUpdateBanner();
 
-    const saved = data ?? { heading: "", paragraph: "" }
-    const heading = draft?.heading ?? saved.heading ?? ""
-    const paragraph = draft?.paragraph ?? saved.paragraph ?? ""
+    const [heading, setHeading] = useState("");
+    const [paragraph, setParagraph] = useState("");
+    const hasInitializedRef = useRef(false);
+
+    useEffect(() => {
+        if (data && !hasInitializedRef.current) {
+            setHeading(data.heading ?? "");
+            setParagraph(data.paragraph ?? "");
+            hasInitializedRef.current = true;
+        }
+    }, [data]);
 
     function handleClick() {
-
         const form = new FormData();
-        form.append("paragraph", paragraph)
-        form.append("heading", heading)
-        if (file) form.append("banner", file)
+        form.append("paragraph", paragraph);
+        form.append("heading", heading);
+        if (file) form.append("banner", file);
 
-        mutate(form);
+        mutate(form, {
+            onSuccess: () => {
+                hasInitializedRef.current = false;
+            },
+        });
+    }
+
+    if (isLoading) {
+        return <p className="text-sm text-neutral-500">Loading…</p>;
     }
 
     return (
@@ -39,29 +54,32 @@ function Banner() {
 
             <div className="mt-3">
                 <Field>
-                    <FieldLabel htmlFor="textarea-disabled">Message</FieldLabel>
+                    <FieldLabel htmlFor="banner-heading">Heading</FieldLabel>
                     <Textarea
-                        value={isLoading ? "loading..." : heading}
-                        onChange={(e) => setDraft((d) => ({ heading: e.target.value, paragraph: d?.paragraph ?? saved.paragraph ?? "" }))}
-                        id="textarea-disabled"
-                        placeholder="Type your message here."
+                        value={heading}
+                        onChange={(e) => setHeading(e.target.value)}
+                        id="banner-heading"
+                        placeholder="Type your heading here."
                     />
                 </Field>
             </div>
 
             <div className="mt-3">
                 <Field>
-                    <FieldLabel htmlFor="textarea-disabled">Paragraph</FieldLabel>
+                    <FieldLabel htmlFor="banner-paragraph">Paragraph</FieldLabel>
                     <Textarea
-                        value={isLoading ? "loading..." : paragraph}
-                        onChange={(e) => setDraft((d) => ({ heading: d?.heading ?? saved.heading ?? "", paragraph: e.target.value }))}
-                        id="textarea-disabled"
+                        value={paragraph}
+                        onChange={(e) => setParagraph(e.target.value)}
+                        id="banner-paragraph"
                         placeholder="Type your message here."
                     />
                 </Field>
             </div>
 
-            <Button onClick={handleClick} className="mt-3">Update</Button>
+            <Button onClick={handleClick} disabled={isPending} className="mt-3">
+                {isPending && <Loader2 className="size-4 mr-1.5 animate-spin" />}
+                Update
+            </Button>
         </div>
     );
 }

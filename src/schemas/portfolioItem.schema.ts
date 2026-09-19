@@ -17,17 +17,40 @@ export const PortfolioItemUpdateSchema = z.object({
 export type PortfolioItemCreate = z.infer<typeof PortfolioItemCreateSchema>;
 export type PortfolioItemUpdate = z.infer<typeof PortfolioItemUpdateSchema>;
 
-/** Reads title / category / description / image off FormData, normalizing empty values to undefined. */
+export interface SubImageSlot {
+  file?: File;
+  url?: string;
+}
+
+/** Reads title / category / description / image and up to 3 sub-images off FormData, normalizing empty values. */
 export function readPortfolioItemFromFormData(formData: FormData) {
   const rawTitle = formData.get("title");
   const rawCategory = formData.get("category");
   const rawDescription = formData.get("description");
   const rawImage = formData.get("image");
 
+  const subImages: SubImageSlot[] = [];
+  const hasSubImages = formData.has("hasSubImages");
+
+  for (let i = 0; i < 3; i++) {
+    const file = formData.get(`subImage_${i}`);
+    const url = formData.get(`subImage_${i}_url`);
+
+    if (file instanceof File && file.size > 0) {
+      subImages.push({ file });
+    } else if (typeof url === "string" && url.trim().length > 0) {
+      subImages.push({ url: url.trim() });
+    } else {
+      subImages.push({});
+    }
+  }
+
   return {
     title: rawTitle ? String(rawTitle) : undefined,
     category: rawCategory ? String(rawCategory) : undefined,
     description: rawDescription ? String(rawDescription) : undefined,
     image: rawImage instanceof File && rawImage.size > 0 ? rawImage : undefined,
+    subImages,
+    hasSubImages,
   };
 }

@@ -6,6 +6,7 @@ import TestimonialsSlider from "@/components/app/home/TestimonialsSlider";
 // import LogoMarquee from "@/components/site/LogoMarquee";
 import Footer from "@/components/app/Footer";
 import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
+import { getPageBanner } from "@/lib/getPageBanner";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -50,12 +51,14 @@ const logos = [
   { id: "5", src: "/images/logos/logo-5.png", alt: "Partner logo" },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const banner = await getPageBanner("about-us");
+
   return (
     <main>
       <PageBanner
-        imageSrc="/images/about-banner.jpg"
-        title="About Us"
+        imageSrc={banner?.image || "/images/about-banner.jpg"}
+        title={banner?.title || "About Us"}
         breadcrumb={[{ label: "Home", href: "/" }]}
       />
 

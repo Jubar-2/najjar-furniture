@@ -22,11 +22,11 @@ export const useGetPortfolio = () => {
     return useQuery<PortfolioContent>({
         queryKey: HOME_PORTFOLIO_QUERY_KEY,
         queryFn: async () => {
-            const { data } = await axios.get("/api/control-panel/page/home/portfolio");
+            const { data } = await axios.get("/api/page/home/portfolio");
             return data.data?.content;
         },
         staleTime: 15 * 60 * 1000,
-        refetchOnWindowFocus: true,
+        refetchOnWindowFocus: false,
     });
 };
 

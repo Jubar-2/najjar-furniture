@@ -23,11 +23,11 @@ export const useGetLayer3 = () => {
     return useQuery<Layer3Content>({
         queryKey: HOME_LAYER3_QUERY_KEY,
         queryFn: async () => {
-            const { data } = await axios.get("/api/control-panel/page/home/layer3");
+            const { data } = await axios.get("/api/page/home/layer3");
             return data.data?.content;
         },
         staleTime: 15 * 60 * 1000,
-        refetchOnWindowFocus: true,
+        refetchOnWindowFocus: false,
     });
 };
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import axios from "axios";
 import { Loader2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,6 +22,7 @@ export default function LayerForm({ layer }: { layer: "1" | "2" }) {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const hasInitializedRef = useRef(false);
 
     const queryKey = ["home-layer", layer];
 
@@ -28,19 +30,30 @@ export default function LayerForm({ layer }: { layer: "1" | "2" }) {
     const { data: content, isLoading } = useQuery<LayerContent | null>({
         queryKey,
         queryFn: async () => {
-            const res = await fetch(`/api/control-panel/page/home/layer${layer}`);
-            if (res.status === 404) return null; // section doesn't exist yet
-            if (!res.ok) {
-                const json = await res.json();
-                throw new Error(json.error ?? "Failed to load.");
+            try {
+                const { data } = await axios.get(`/api/page/home/layer${layer}`);
+                return data.data.content;
+            } catch (err: unknown) {
+                if (axios.isAxiosError(err) && err.response?.status === 404) {
+                    return null; // section doesn't exist yet
+                }
+                const message = axios.isAxiosError(err)
+                    ? (err.response?.data?.message ?? err.response?.data?.error ?? err.message)
+                    : "Failed to load.";
+                throw new Error(message);
             }
-            const json = await res.json();
-            const c: LayerContent = json.data.content;
-            // Sync text form fields when data arrives
-            setForm({ heading: c.heading ?? "", paragraph: c.paragraph ?? "" });
-            return c;
         },
+        staleTime: 15 * 60 * 1000,
+        refetchOnWindowFocus: false,
     });
+
+    // Populate form once when content is loaded
+    useEffect(() => {
+        if (content && !hasInitializedRef.current) {
+            setForm({ heading: content.heading ?? "", paragraph: content.paragraph ?? "" });
+            hasInitializedRef.current = true;
+        }
+    }, [content]);
 
     // ── Save ───────────────────────────────────────────────────────────────
     const mutation = useMutation({
@@ -56,18 +69,24 @@ export default function LayerForm({ layer }: { layer: "1" | "2" }) {
                 throw new Error("An image is required to create this layer.");
             }
 
-            const res = await fetch(`/api/control-panel/page/home/layer${layer}`, {
-                method,
-                body: formData,
-            });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error ?? "Save failed.");
-            return json;
+            try {
+                const url = `/api/control-panel/page/home/layer${layer}`;
+                const { data } = method === "PATCH"
+                    ? await axios.patch(url, formData)
+                    : await axios.post(url, formData);
+                return data;
+            } catch (err: unknown) {
+                const message = axios.isAxiosError(err)
+                    ? (err.response?.data?.message ?? err.response?.data?.error ?? err.message)
+                    : (err instanceof Error ? err.message : "Save failed.");
+                throw new Error(message);
+            }
         },
         onSuccess: () => {
             setSuccess(true);
             setImageFile(null);
             setError(null);
+            hasInitializedRef.current = false;
             queryClient.invalidateQueries({ queryKey });
         },
         onError: (err) => {
@@ -107,7 +126,7 @@ export default function LayerForm({ layer }: { layer: "1" | "2" }) {
                     <input
                         value={form.heading}
                         onChange={(e) => setForm((f) => ({ ...f, heading: e.target.value }))}
-                        className="w-full rounded-lg border border-neutral-200 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-400"
+                        className="w-full rounded-lg border border-neutral-200 px-3.5 py-2.5 text-sm outline-none"
                         required={!content}
                     />
                 </Field>
@@ -117,7 +136,7 @@ export default function LayerForm({ layer }: { layer: "1" | "2" }) {
                         rows={4}
                         value={form.paragraph}
                         onChange={(e) => setForm((f) => ({ ...f, paragraph: e.target.value }))}
-                        className="w-full resize-none rounded-lg border border-neutral-200 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-400"
+                        className="w-full resize-none rounded-lg border border-neutral-200 px-3.5 py-2.5 text-sm outline-none"
                         required={!content}
                     />
                 </Field>

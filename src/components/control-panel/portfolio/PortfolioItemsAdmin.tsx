@@ -81,6 +81,27 @@ export default function PortfolioItemsAdmin() {
                                 />
                             </div>
 
+                            {item.subImages && item.subImages.length > 0 && (
+                                <div className="flex items-center gap-1.5">
+                                    {item.subImages.slice(0, 3).map((sub, i) => (
+                                        <div
+                                            key={i}
+                                            className="relative size-10 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100 shrink-0"
+                                        >
+                                            <Image
+                                                src={typeof sub === "string" ? sub : sub?.url || ""}
+                                                alt={`${item.title} detail ${i + 1}`}
+                                                fill
+                                                className="object-cover"
+                                            />
+                                        </div>
+                                    ))}
+                                    <span className="text-[11px] text-neutral-400 font-medium ml-0.5">
+                                        {item.subImages.length} sub-image{item.subImages.length > 1 ? "s" : ""}
+                                    </span>
+                                </div>
+                            )}
+
                             <div className="min-w-0">
                                 <p className="truncate text-sm font-semibold text-slate-800">{item.title}</p>
                                 {item.category && (

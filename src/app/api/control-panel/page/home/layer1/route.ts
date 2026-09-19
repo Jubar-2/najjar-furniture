@@ -1,46 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import PageSection from "@/models/pageSections.model";
 import PageModel from "@/models/page.model";
-import { LayerSchema } from "@/schemas/layer.schema";
+import { LayerSchema, LayerUpdateSchema } from "@/schemas/layer.schema";
 import { deleteUploadedFileOnCloudinary, uploadOnCloudinary } from "@/services/Cloudinary";
 import { ApiResponse } from "@/lib/apiResponse";
 
 const SECTION_TYPE = "home-layer-1";
 
-// GET /api/control-panel/page/home/layer1
-export async function GET() {
-    try {
-        await dbConnect();
-
-        const page = await PageModel.findOne({ pageName: "home" });
-        if (!page) {
-            return NextResponse.json({ error: "Home page is not found." }, { status: 404 });
-        }
-
-        const section = await PageSection.findOne({
-            pageId: page._id,
-            type: SECTION_TYPE,
-        }).lean();
-
-        if (!section) {
-            return NextResponse.json({ error: "Layer 1 section not found." }, { status: 404 });
-        }
-
-        return NextResponse.json({ data: section }, { status: 200 });
-    } catch (error) {
-        console.error("GET /control-panel/page/home/layer1 failed:", error);
-        return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
-    }
-}
-
 // POST /api/pages/:pageId/sections/banner
 // Creates a new banner section for a page. Body must match LayerSchema.
 export async function POST(req: NextRequest) {
-
     try {
-
         const formData = await req.formData();
 
         const parsed = LayerSchema.safeParse({
@@ -50,24 +22,27 @@ export async function POST(req: NextRequest) {
         });
 
         if (!parsed.success) {
-            return NextResponse.json(
-                { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-                { status: 422 }
+            return ApiResponse.error(
+                "Validation failed.",
+                422,
+                z.treeifyError(parsed.error)
             );
         }
 
         await dbConnect();
 
-
-        const page = await PageModel.findOne({pageName: "home"});
+        const page = await PageModel.findOne({ pageName: "home" });
 
         if (!page) {
-            throw Error("Home page is not found")
+            return ApiResponse.error("Home page is not found.", 404);
         }
 
         const { heading, paragraph, image } = parsed.data;
 
         const imageCloud = await uploadOnCloudinary(image);
+        if (!imageCloud) {
+            return ApiResponse.error("Image upload failed.", 502);
+        }
 
         const section = await PageSection.create({
             pageId: page._id,
@@ -75,14 +50,15 @@ export async function POST(req: NextRequest) {
             content: {
                 heading,
                 paragraph,
-                image: imageCloud?.url
+                image: imageCloud?.url,
+                imagePublicId: imageCloud?.public_id,
             },
         });
 
-        return ApiResponse.success({ data: section });
+        return ApiResponse.success(section, "Layer 1 section created", 201);
     } catch (error) {
         console.error("POST /sections/banner failed:", error);
-        return ApiResponse.error("Something went wrong.", 500);
+        return ApiResponse.fatal("Something went wrong.");
     }
 }
 
@@ -97,58 +73,52 @@ export async function PATCH(req: NextRequest) {
         const rawHeading = formData.get("heading");
         const rawParagraph = formData.get("paragraph");
 
-        const parsed = LayerSchema.safeParse({
-            // formData.get() returns "" for a missing text field and a zero-byte
-            // File for a missing file input — normalize both to `undefined` so
-            // .optional() actually treats "not sent" as "not sent".
+        const parsed = LayerUpdateSchema.safeParse({
             heading: rawHeading ? String(rawHeading) : undefined,
             paragraph: rawParagraph ? String(rawParagraph) : undefined,
             image: rawImage instanceof File && rawImage.size > 0 ? rawImage : undefined,
         });
 
         if (!parsed.success) {
-            return NextResponse.json(
-                { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-                { status: 422 }
+            return ApiResponse.error(
+                "Validation failed.",
+                422,
+                z.treeifyError(parsed.error)
             );
         }
 
         const { heading, paragraph, image } = parsed.data;
 
         if (heading === undefined && paragraph === undefined && image === undefined) {
-            return NextResponse.json({ error: "No fields provided to update." }, { status: 400 });
+            return ApiResponse.error("No fields provided to update.", 400);
         }
 
         await dbConnect();
 
         const page = await PageModel.findOne({ pageName: "home" });
         if (!page) {
-            throw new Error("Home page is not found");
+            return ApiResponse.error("Home page is not found.", 404);
         }
 
         const section = await PageSection.findOne({ pageId: page._id, type: SECTION_TYPE });
         if (!section) {
-            return NextResponse.json({ error: "Banner section not found." }, { status: 404 });
+            return ApiResponse.error("Layer 1 section not found.", 404);
         }
 
-        // Merge onto the existing content rather than replacing it wholesale,
-        // so a heading-only update doesn't wipe out the existing banner/paragraph.
         const updatedContent: Record<string, unknown> = { ...section.content };
 
         if (heading !== undefined) updatedContent.heading = heading;
         if (paragraph !== undefined) updatedContent.paragraph = paragraph;
-        
+
         if (image) {
             const imageCloud = await uploadOnCloudinary(image);
 
             if (!imageCloud) {
-                return NextResponse.json({ error: "Image upload failed." }, { status: 502 });
+                return ApiResponse.error("Image upload failed.", 502);
             }
 
-            // Best-effort cleanup of the old asset so replacing a banner doesn't
-            // leave orphaned images sitting in your Cloudinary account. Requires
-            // the previous upload's public_id to have been stored — see note below.
-            const previousPublicId = (section.content as { bannerPublicId?: string }).bannerPublicId;
+            const previousPublicId = (section.content as { imagePublicId?: string; bannerPublicId?: string }).imagePublicId ??
+                (section.content as { bannerPublicId?: string }).bannerPublicId;
             if (previousPublicId) {
                 await deleteUploadedFileOnCloudinary(previousPublicId, "image");
             }
@@ -158,13 +128,12 @@ export async function PATCH(req: NextRequest) {
         }
 
         section.content = updatedContent;
-        section.markModified("content"); // Mixed fields need this — Mongoose won't
-        // detect in-place mutations otherwise.
+        section.markModified("content");
         await section.save();
 
-        return NextResponse.json({ data: section }, { status: 200 });
+        return ApiResponse.success(section);
     } catch (error) {
         console.error("PATCH /sections/banner failed:", error);
-        return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+        return ApiResponse.fatal("Something went wrong.");
     }
 }

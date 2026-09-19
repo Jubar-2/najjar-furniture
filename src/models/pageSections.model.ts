@@ -14,6 +14,7 @@ export type PageSectionType =
     | "about"
     | "testimonials"
     | "privacy-policy"
+    | "terms-conditions"
     | "contact"
 
 export interface IPageSection extends Document {
@@ -40,7 +41,19 @@ const PageSectionSchema = new Schema<IPageSection>(
             trim: true,
             // Remove this `enum` if you want type to stay fully free-form like
             // the Postgres VARCHAR(50) comment suggests (any string allowed).
-            enum: ["banner", "home-layer-3", "home-layer-1", "home-layer-2", "gallery", "portfolio", "about", "testimonials", "privacy-policy", "contact"],
+            enum: [
+                "banner",
+                "home-layer-3",
+                "home-layer-1",
+                "home-layer-2",
+                "gallery",
+                "portfolio",
+                "about",
+                "testimonials",
+                "privacy-policy",
+                "terms-conditions",
+                "contact",
+            ],
         },
         isActive: {
             type: Boolean,

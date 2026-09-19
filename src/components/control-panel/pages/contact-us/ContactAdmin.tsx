@@ -12,6 +12,7 @@ import { useGetContact, useSaveContact } from "@/customHooks/useContact";
 import MessagesPanel from "./MessagesPanel";
 import ContactInfoFields from "./ContactInfoFields";
 import TopicsFields from "./TopicsFields";
+import PageBannerAdmin from "@/components/control-panel/pages/PageBannerAdmin";
 
 export default function ContactAdmin() {
     const { data, isLoading } = useGetContact();
@@ -20,6 +21,9 @@ export default function ContactAdmin() {
     const form = useForm<ContactSection>({
         defaultValues: DEFAULT_CONTACT,
         values: data ?? undefined,
+        resetOptions: {
+            keepDirtyValues: true,
+        },
     });
 
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -67,6 +71,17 @@ export default function ContactAdmin() {
 
             <PageTabs
                 tabs={[
+                    {
+                        key: "banner",
+                        label: "Banner",
+                        content: (
+                            <PageBannerAdmin
+                                pageName="contact"
+                                defaultTitle="Contact Us"
+                                defaultImage="/images/contact-banner.jpg"
+                            />
+                        ),
+                    },
                     { key: "info", label: "Contact Info", content: <ContactInfoFields form={form} /> },
                     { key: "topics", label: "Topics", content: <TopicsFields form={form} /> },
                     { key: "messages", label: "Messages", content: <MessagesPanel /> },

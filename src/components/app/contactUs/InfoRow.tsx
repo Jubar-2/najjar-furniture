@@ -13,10 +13,10 @@ export function InfoRow({
 }) {
   const inner = (
     <>
-      <span className="mt-0.5 text-[#c9a06a]">{icon}</span>
-      <div>
-        <p className="text-[#f2ead9]/60">{label}</p>
-        <p className="font-medium text-[#f2ead9]">{value}</p>
+      <span className="mt-0.5 text-[#c9a06a] shrink-0">{icon}</span>
+      <div className="min-w-0 flex-1 break-words">
+        <p className="text-[11px] sm:text-xs text-[#f2ead9]/60">{label}</p>
+        <p className="font-medium text-xs sm:text-sm text-[#f2ead9] break-all">{value}</p>
       </div>
     </>
   );

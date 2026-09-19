@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import PageModel from "@/models/page.model";
@@ -8,41 +8,10 @@ import {
   PageContentUpdateSchema,
   readPageContentFromJson,
 } from "@/schemas/pageContent.schema";
+import { ApiResponse } from "@/lib/apiResponse";
 
 const PAGE_NAME = "privacy-policy";
 const SECTION_TYPE = "privacy-policy";
-
-// GET /api/control-panel/page/privacy-policy
-// Returns 200 with `content: null` when the section doesn't exist yet, so
-// clients don't have to distinguish 404s.
-export async function GET() {
-  try {
-    await dbConnect();
-
-    const page = await PageModel.findOne({ pageName: PAGE_NAME });
-    if (!page) {
-      return NextResponse.json({ data: { content: null } }, { status: 200 });
-    }
-
-    const section = await PageSection.findOne({
-      pageId: page._id,
-      type: SECTION_TYPE,
-      isActive: true,
-    }).lean();
-
-    if (!section) {
-      return NextResponse.json({ data: { content: null } }, { status: 200 });
-    }
-
-    return NextResponse.json(
-      { data: { content: section.content, updatedAt: section.updatedAt } },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("GET /page/privacy-policy failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
-  }
-}
 
 // POST /api/control-panel/page/privacy-policy
 // Creates the section with the required body.
@@ -54,9 +23,10 @@ export async function POST(req: NextRequest) {
     const parsed = PageContentCreateSchema.safeParse(raw);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-        { status: 422 }
+      return ApiResponse.error(
+        "Validation failed.",
+        422,
+        z.treeifyError(parsed.error)
       );
     }
 
@@ -73,10 +43,10 @@ export async function POST(req: NextRequest) {
       content: { body: parsed.data.body },
     });
 
-    return NextResponse.json({ data: section }, { status: 201 });
+    return ApiResponse.success(section, "Privacy policy created", 201);
   } catch (error) {
     console.error("POST /page/privacy-policy failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }
 
@@ -90,16 +60,17 @@ export async function PATCH(req: NextRequest) {
     const parsed = PageContentUpdateSchema.safeParse(raw);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-        { status: 422 }
+      return ApiResponse.error(
+        "Validation failed.",
+        422,
+        z.treeifyError(parsed.error)
       );
     }
 
     const { body } = parsed.data;
 
     if (body === undefined) {
-      return NextResponse.json({ error: "No fields provided to update." }, { status: 400 });
+      return ApiResponse.error("No fields provided to update.", 400);
     }
 
     await dbConnect();
@@ -125,12 +96,12 @@ export async function PATCH(req: NextRequest) {
     section.markModified("content");
     await section.save();
 
-    return NextResponse.json(
-      { data: { content: section.content, updatedAt: section.updatedAt } },
-      { status: 200 }
-    );
+    return ApiResponse.success({
+      content: section.content,
+      updatedAt: section.updatedAt,
+    });
   } catch (error) {
     console.error("PATCH /page/privacy-policy failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }

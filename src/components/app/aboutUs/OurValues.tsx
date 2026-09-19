@@ -42,26 +42,26 @@ export default function OurValues({
   values = DEFAULT_VALUES,
 }: OurValuesProps) {
   return (
-    <section className="bg-[#fdf6ee] py-16">
+    <section className="bg-[#fdf6ee] py-12 sm:py-16 md:py-20">
       <Container>
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-[#6b3f22] md:text-4xl">{title}</h2>
-          <p className="mx-auto mt-3 max-w-md text-[13px] leading-relaxed text-[#3a2c22]/70">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#6b3f22] tracking-tight">{title}</h2>
+          <p className="mx-auto mt-2 sm:mt-3 max-w-md text-xs sm:text-[13.5px] leading-relaxed text-[#3a2c22]/75">
             {description}
           </p>
         </div>
 
-        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 sm:mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
           {values.map((value) => (
             <div
               key={value.title}
-              className="flex flex-col items-center rounded-2xl bg-white p-7 text-center shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
+              className="flex flex-col items-center rounded-2xl bg-white p-5 sm:p-7 text-center shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all hover:shadow-md"
             >
-              <span className="flex size-12 items-center justify-center rounded-full bg-[#f2ead9] text-[#6b3f22]">
+              <span className="flex size-11 sm:size-12 items-center justify-center rounded-full bg-[#f2ead9] text-[#6b3f22]">
                 {value.icon}
               </span>
-              <h3 className="mt-4 text-sm font-semibold text-[#2b1810]">{value.title}</h3>
-              <p className="mt-2 text-[12px] leading-relaxed text-[#3a2c22]/70">
+              <h3 className="mt-3.5 sm:mt-4 text-sm sm:text-base font-semibold text-[#2b1810]">{value.title}</h3>
+              <p className="mt-2 text-xs sm:text-[12.5px] leading-relaxed text-[#3a2c22]/75">
                 {value.description}
               </p>
             </div>

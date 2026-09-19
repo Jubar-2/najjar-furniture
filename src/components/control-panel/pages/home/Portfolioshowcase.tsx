@@ -43,7 +43,7 @@ const DEFAULT_STATS: Stat[] = [
   {
     icon:
       <svg width="39" height="35" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g clip-path="url(#clip0_54_220)">
+        <g clipPath="url(#clip0_54_220)">
           <path d="M8.75 19.6875C8.75 18.8222 8.49341 17.9763 8.01268 17.2569C7.53195 16.5374 6.84867 15.9767 6.04924 15.6455C5.24981 15.3144 4.37015 15.2278 3.52148 15.3966C2.67282 15.5654 1.89326 15.9821 1.28141 16.5939C0.669555 17.2058 0.252877 17.9853 0.0840664 18.834C-0.084744 19.6826 0.0018956 20.5623 0.333029 21.3617C0.664162 22.1612 1.22492 22.8445 1.94438 23.3252C2.66385 23.8059 3.50971 24.0625 4.375 24.0625V35H30.625V24.0625C31.4903 24.0625 32.3362 23.8059 33.0556 23.3252C33.7751 22.8445 34.3358 22.1612 34.667 21.3617C34.9981 20.5623 35.0847 19.6826 34.9159 18.834C34.7471 17.9853 34.3304 17.2058 33.7186 16.5939C33.1067 15.9821 32.3272 15.5654 31.4785 15.3966C30.6299 15.2278 29.7502 15.3144 28.9508 15.6455C28.1513 15.9767 27.4681 16.5374 26.9873 17.2569C26.5066 17.9763 26.25 18.8222 26.25 19.6875V24.0625H8.75V19.6875Z" fill="#462514" />
           <path d="M12.0312 19.6875C12.0312 17.6645 11.2306 15.7237 9.80423 14.2892C8.37785 12.8546 6.44167 12.0429 4.4187 12.0313C4.68756 8.74667 6.18226 5.68339 8.6058 3.45013C11.0293 1.21686 14.2043 -0.0229492 17.5 -0.0229492C20.7956 -0.0229492 23.9706 1.21686 26.3941 3.45013C28.8176 5.68339 30.3123 8.74667 30.5812 12.0313C28.5582 12.0429 26.6221 12.8546 25.1957 14.2892C23.7693 15.7237 22.9687 17.6645 22.9687 19.6875V20.7813H12.0312V19.6875Z" fill="#462514" />
         </g>
@@ -74,27 +74,27 @@ export default function PortfolioShowcase({
   images,
 }: PortfolioShowcaseProps) {
   return (
-    <section className="bg-white py-16">
+    <section className="bg-white py-12 sm:py-16">
       <Container>
-        <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2 md:gap-14">
+        <div className="grid grid-cols-1 items-center gap-8 sm:gap-10 md:grid-cols-2 md:gap-14">
           {/* Left column */}
           <div>
-            <h2 className="text-3xl font-bold text-[#602100] md:text-4xl">{title}</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#602100] tracking-tight">{title}</h2>
             <span className="mt-2 block h-0.75 w-14 bg-[#602100]" />
 
-            <p className="mt-5 max-w-md text-[20px] leading-relaxed text-black">
+            <p className="mt-4 sm:mt-5 max-w-md text-sm sm:text-base md:text-lg leading-relaxed text-black/85 font-normal">
               <span dangerouslySetInnerHTML={{ __html: description }} />
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-8">
+            <div className="mt-6 sm:mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
               {stats.map((stat) => (
-                <div key={stat.label} className="flex flex-col items-start gap-1.5 relative z-10">
-                  <div className="w-12.5 h-12.5 bg-[#FDF0B4] absolute rounded-full -z-10 left-[-5] top-[-8]"></div>
-                  <div className="w-px h-15 bg-[linear-gradient(180deg,rgba(255,255,255,0.4)_0%,rgba(56,22,4,0.248)_43.75%,rgba(255,255,255,0.4)_100%)] absolute rounded-full -z-10 right-[-5] top-[-8]"></div>
-                  <div className="w-12.5 h-12.5 bg-[#FDF0B4] absolute rounded-full -z-10 left-[-5] top-[-8]"></div>
-                  <span className="text-[#6b3f22]">{stat.icon}</span>
-                  <span className="text-[20px] font-bold text-[#381604] block leading-[153%] tracking-[1.6px] mt-4">{stat.value}</span>
-                  <span className="text-[8px] text-[#000000] block text-center leading-[153%]">
+                <div key={stat.label} className="relative z-10 flex flex-col items-start gap-1 p-2">
+                  <div className="absolute -left-1 -top-1.5 -z-10 h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-[#FDF0B4]"></div>
+                  <div className="text-[#6b3f22]">{stat.icon}</div>
+                  <span className="mt-2 block text-base sm:text-lg md:text-xl font-bold text-[#381604]">
+                    {stat.value}
+                  </span>
+                  <span className="block text-[10px] sm:text-xs text-[#000000]/80">
                     {stat.label}
                   </span>
                 </div>
@@ -103,7 +103,7 @@ export default function PortfolioShowcase({
 
             <Link
               href={ctaHref}
-              className="mt-9 inline-flex items-center gap-2.5 bg-[#e9c9a0] px-6 py-3.5 text-[18px] font-semibold tracking-wide text-[#462514] transition-colors hover:bg-[#dfb987]"
+              className="mt-8 inline-flex items-center gap-2.5 bg-[#e9c9a0] px-5 sm:px-6 py-3 text-xs sm:text-sm font-semibold tracking-wide text-[#462514] transition-all hover:bg-[#dfb987] hover:shadow-md"
             >
               {ctaLabel.toUpperCase()}
               <ArrowRight className="size-3.5" />
@@ -111,11 +111,11 @@ export default function PortfolioShowcase({
           </div>
 
           {/* Right column — 2x2 image grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {images.map((image, index) => (
               <div
                 key={index}
-                className="relative aspect-[4/3.1] overflow-hidden rounded-2xl shadow-[0px_4px_20px_0px_#00000040]"
+                className="relative aspect-[4/3.1] overflow-hidden rounded-xl sm:rounded-2xl shadow-[0px_4px_20px_0px_#00000040]"
               >
                 <Image
                   src={image.src}
@@ -125,7 +125,7 @@ export default function PortfolioShowcase({
                 />
                 <Link
                   href={image.href}
-                  className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-[#f2ead9] px-4 py-1.5 text-[10px] font-medium text-[#3a2c22] shadow-sm transition-colors hover:bg-white"
+                  className="absolute bottom-2 sm:bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-[#f2ead9]/95 px-3 py-1 sm:px-4 sm:py-1.5 text-[9px] sm:text-[10px] font-medium text-[#3a2c22] shadow-sm transition-colors hover:bg-white whitespace-nowrap"
                 >
                   About
                   <ArrowRight className="size-3" />

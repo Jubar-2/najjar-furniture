@@ -1,5 +1,6 @@
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { headers } from "next/headers";
+import axios from "axios";
 
 import HomeHeroClint from "@/components/clint-components/home/HomeHeroClint";
 import HomeLayersClient from "@/components/clint-components/home/HomeLayersClient";
@@ -22,7 +23,7 @@ import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata(await getPageMeta("home"));
+    return buildMetadata(await getPageMeta("home"));
 }
 
 // Resolve the base URL for server-side fetching from request headers
@@ -35,10 +36,8 @@ async function getBaseUrl() {
 
 async function serverFetch(baseUrl: string, path: string) {
     try {
-        const res = await fetch(`${baseUrl}${path}`, { cache: "no-store" });
-        if (!res.ok) return null;
-        const json = await res.json();
-        return json.data?.content ?? json.data ?? null;
+        const { data } = await axios.get(`${baseUrl}${path}`);
+        return data?.data?.content ?? data?.data ?? null;
     } catch {
         return null;
     }
@@ -56,30 +55,26 @@ export default async function Home() {
         }),
         queryClient.prefetchQuery({
             queryKey: HOME_LAYER1_QUERY_KEY,
-            queryFn: () => serverFetch(baseUrl, "/api/control-panel/page/home/layer1"),
+            queryFn: () => serverFetch(baseUrl, "/api/page/home/layer1"),
         }),
         queryClient.prefetchQuery({
             queryKey: HOME_LAYER2_QUERY_KEY,
-            queryFn: () => serverFetch(baseUrl, "/api/control-panel/page/home/layer2"),
+            queryFn: () => serverFetch(baseUrl, "/api/page/home/layer2"),
         }),
         queryClient.prefetchQuery({
             queryKey: HOME_LAYER3_QUERY_KEY,
-            queryFn: () => serverFetch(baseUrl, "/api/control-panel/page/home/layer3"),
+            queryFn: () => serverFetch(baseUrl, "/api/page/home/layer3"),
         }),
         queryClient.prefetchQuery({
             queryKey: HOME_PORTFOLIO_QUERY_KEY,
-            queryFn: () => serverFetch(baseUrl, "/api/control-panel/page/home/portfolio"),
+            queryFn: () => serverFetch(baseUrl, "/api/page/home/portfolio"),
         }),
         queryClient.prefetchQuery({
             queryKey: HOME_TESTIMONIALS_QUERY_KEY,
             queryFn: async () => {
                 try {
-                    const res = await fetch(`${baseUrl}/api/control-panel/testimonials`, {
-                        cache: "no-store",
-                    });
-                    if (!res.ok) return [];
-                    const json = await res.json();
-                    return json.data ?? [];
+                    const { data } = await axios.get(`${baseUrl}/api/testimonials`);
+                    return data?.data ?? [];
                 } catch {
                     return [];
                 }

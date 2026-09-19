@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import PageModel from "@/models/page.model";
 import { getSitePage } from "@/lib/sitePages";
 import { PageMetaSchema, readPageMetaFromJson } from "@/schemas/pageMeta.schema";
+import { ApiResponse } from "@/lib/apiResponse";
 
 // PATCH /api/control-panel/meta/:pageName
 // Updates the meta settings for a single page. Auto-creates the Page record
@@ -17,7 +18,7 @@ export async function PATCH(
 
     const sitePage = getSitePage(pageName);
     if (!sitePage) {
-      return NextResponse.json({ error: "Unknown page." }, { status: 404 });
+      return ApiResponse.error("Unknown page.", 404);
     }
 
     const json = (await req.json()) as Record<string, unknown>;
@@ -26,9 +27,10 @@ export async function PATCH(
     const parsed = PageMetaSchema.safeParse(raw);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed.", issues: z.treeifyError(parsed.error) },
-        { status: 422 }
+      return ApiResponse.error(
+        "Validation failed.",
+        422,
+        z.treeifyError(parsed.error)
       );
     }
 
@@ -43,7 +45,7 @@ export async function PATCH(
       meta_og_image === undefined &&
       meta_author === undefined
     ) {
-      return NextResponse.json({ error: "No fields provided to update." }, { status: 400 });
+      return ApiResponse.error("No fields provided to update.", 400);
     }
 
     await dbConnect();
@@ -68,22 +70,17 @@ export async function PATCH(
 
     await page.save();
 
-    return NextResponse.json(
-      {
-        data: {
-          pageName,
-          title: page.title,
-          meta_title: page.meta_title,
-          meta_description: page.meta_description,
-          meta_keywords: page.meta_keywords,
-          meta_og_image: page.meta_og_image,
-          meta_author: page.meta_author,
-        },
-      },
-      { status: 200 }
-    );
+    return ApiResponse.success({
+      pageName,
+      title: page.title,
+      meta_title: page.meta_title,
+      meta_description: page.meta_description,
+      meta_keywords: page.meta_keywords,
+      meta_og_image: page.meta_og_image,
+      meta_author: page.meta_author,
+    });
   } catch (error) {
     console.error("PATCH /control-panel/meta/:pageName failed:", error);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return ApiResponse.fatal("Something went wrong.");
   }
 }

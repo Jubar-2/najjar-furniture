@@ -19,11 +19,11 @@ export const useGetPageMeta = () => {
   return useQuery<PageMetaRecord[]>({
     queryKey: PAGE_META_QUERY_KEY,
     queryFn: async () => {
-      const { data } = await axios.get("/api/control-panel/meta");
+      const { data } = await axios.get("/api/meta");
       return data.data ?? [];
     },
     staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 };
 

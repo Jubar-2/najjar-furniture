@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -27,31 +28,43 @@ export default function HomeLayerThreeForm() {
     );
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const hasInitializedRef = useRef(false);
 
     // ── Fetch ──────────────────────────────────────────────────────────────
     const { data: content, isLoading } = useQuery<Content | null>({
         queryKey: QUERY_KEY,
         queryFn: async () => {
-            const res = await fetch("/api/control-panel/page/home/layer3");
-            if (res.status === 404) return null; // section doesn't exist yet
-            if (!res.ok) {
-                const json = await res.json();
-                throw new Error(json.error ?? "Failed to load.");
+            try {
+                const { data } = await axios.get("/api/page/home/layer3");
+                return data.data.content;
+            } catch (err: unknown) {
+                if (axios.isAxiosError(err) && err.response?.status === 404) {
+                    return null; // section doesn't exist yet
+                }
+                const message = axios.isAxiosError(err)
+                    ? (err.response?.data?.message ?? err.response?.data?.error ?? err.message)
+                    : "Failed to load.";
+                throw new Error(message);
             }
-            const json = await res.json();
-            const c: Content = json.data.content;
-            // Sync text form fields when data arrives
+        },
+        staleTime: 15 * 60 * 1000,
+        refetchOnWindowFocus: false,
+    });
+
+    // Populate form items once when content is loaded
+    useEffect(() => {
+        if (content && !hasInitializedRef.current) {
             setForms(
                 Object.fromEntries(
                     ITEM_KEYS.map((k) => [
                         k,
-                        { heading: c[k]?.heading ?? "", paragraph: c[k]?.paragraph ?? "", imageFile: null },
+                        { heading: content[k]?.heading ?? "", paragraph: content[k]?.paragraph ?? "", imageFile: null },
                     ])
                 )
             );
-            return c;
-        },
-    });
+            hasInitializedRef.current = true;
+        }
+    }, [content]);
 
     function updateItem(key: string, patch: Partial<ItemFormState>) {
         setForms((f) => ({ ...f, [key]: { ...f[key], ...patch } }));
@@ -70,9 +83,8 @@ export default function HomeLayerThreeForm() {
         const existingUrl = content?.[key as keyof Content]?.image;
         if (!existingUrl) return null;
 
-        const res = await fetch(existingUrl);
-        const blob = await res.blob();
-        return new File([blob], `${key}.jpg`, { type: blob.type });
+        const { data } = await axios.get<Blob>(existingUrl, { responseType: "blob" });
+        return new File([data], `${key}.jpg`, { type: data.type });
     }
 
     async function handleSubmit(e: React.FormEvent) {
@@ -118,14 +130,23 @@ export default function HomeLayerThreeForm() {
             }
 
             const method = isCreate ? "POST" : "PATCH";
-            const res = await fetch("/api/control-panel/page/home/layer3", { method, body: formData });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error ?? "Save failed.");
-            return json;
+            try {
+                const url = "/api/control-panel/page/home/layer3";
+                const { data } = method === "PATCH"
+                    ? await axios.patch(url, formData)
+                    : await axios.post(url, formData);
+                return data;
+            } catch (err: unknown) {
+                const message = axios.isAxiosError(err)
+                    ? (err.response?.data?.message ?? err.response?.data?.error ?? err.message)
+                    : (err instanceof Error ? err.message : "Save failed.");
+                throw new Error(message);
+            }
         },
         onSuccess: () => {
             setSuccess(true);
             setError(null);
+            hasInitializedRef.current = false;
             queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         },
         onError: (err) => {

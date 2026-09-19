@@ -13,11 +13,11 @@ export const useGetLayer2 = () => {
     return useQuery<Layer2Content>({
         queryKey: HOME_LAYER2_QUERY_KEY,
         queryFn: async () => {
-            const { data } = await axios.get("/api/control-panel/page/home/layer2");
+            const { data } = await axios.get("/api/page/home/layer2");
             return data.data?.content;
         },
         staleTime: 15 * 60 * 1000,
-        refetchOnWindowFocus: true,
+        refetchOnWindowFocus: false,
     });
 };
 

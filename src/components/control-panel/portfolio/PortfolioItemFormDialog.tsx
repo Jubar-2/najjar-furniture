@@ -13,7 +13,7 @@ interface FormDialogProps {
 export default function PortfolioItemFormDialog({ open, editing, onOpenChange }: FormDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 {open && (
                     <PortfolioItemFormBody
                         key={editing?._id ?? "new"}
