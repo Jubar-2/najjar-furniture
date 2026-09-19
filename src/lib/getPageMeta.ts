@@ -11,6 +11,34 @@ export interface ResolvedPageMeta {
   author: string;
 }
 
+import { unstable_cache } from "next/cache";
+
+async function fetchPageMetaFromDb(pageName: string): Promise<ResolvedPageMeta> {
+  const fallback = getSitePage(pageName);
+
+  await dbConnect();
+
+  const page = await PageModel.findOne({ pageName }).lean();
+
+  if (!page) {
+    return {
+      title: fallback?.defaultTitle ?? SITE_NAME,
+      description: fallback?.defaultDescription ?? "",
+      keywords: fallback?.defaultKeywords ?? "",
+      ogImage: "",
+      author: SITE_NAME,
+    };
+  }
+
+  return {
+    title: page.meta_title || fallback?.defaultTitle || SITE_NAME,
+    description: page.meta_description || fallback?.defaultDescription || "",
+    keywords: page.meta_keywords || fallback?.defaultKeywords || "",
+    ogImage: page.meta_og_image || "",
+    author: page.meta_author || SITE_NAME,
+  };
+}
+
 /**
  * Reads the saved meta settings for a page from the DB and resolves them
  * against the site defaults, so `generateMetadata()` always has complete
@@ -20,27 +48,16 @@ export async function getPageMeta(pageName: string): Promise<ResolvedPageMeta> {
   const fallback = getSitePage(pageName);
 
   try {
-    await dbConnect();
+    const getCachedMeta = unstable_cache(
+      () => fetchPageMetaFromDb(pageName),
+      [`page-meta-${pageName}`],
+      {
+        revalidate: 900,
+        tags: [`page-meta-${pageName}`, "page-meta"],
+      }
+    );
 
-    const page = await PageModel.findOne({ pageName }).lean();
-
-    if (!page) {
-      return {
-        title: fallback?.defaultTitle ?? SITE_NAME,
-        description: fallback?.defaultDescription ?? "",
-        keywords: fallback?.defaultKeywords ?? "",
-        ogImage: "",
-        author: SITE_NAME,
-      };
-    }
-
-    return {
-      title: page.meta_title || fallback?.defaultTitle || SITE_NAME,
-      description: page.meta_description || fallback?.defaultDescription || "",
-      keywords: page.meta_keywords || fallback?.defaultKeywords || "",
-      ogImage: page.meta_og_image || "",
-      author: page.meta_author || SITE_NAME,
-    };
+    return await getCachedMeta();
   } catch (error) {
     console.error(`getPageMeta("${pageName}") failed:`, error);
     return {

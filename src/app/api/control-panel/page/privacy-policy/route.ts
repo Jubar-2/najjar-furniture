@@ -9,7 +9,7 @@ import {
   readPageContentFromJson,
 } from "@/schemas/pageContent.schema";
 import { ApiResponse } from "@/lib/apiResponse";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 const PAGE_NAME = "privacy-policy";
 const SECTION_TYPE = "privacy-policy";
@@ -44,6 +44,8 @@ export async function POST(req: NextRequest) {
       content: { body: parsed.data.body },
     });
 
+    revalidateTag("page-content-privacy-policy", "max");
+    revalidateTag("page-content", "max");
     revalidatePath("/privacy-policy");
 
     return ApiResponse.success(section, "Privacy policy created", 201);
@@ -99,6 +101,8 @@ export async function PATCH(req: NextRequest) {
     section.markModified("content");
     await section.save();
 
+    revalidateTag("page-content-privacy-policy", "max");
+    revalidateTag("page-content", "max");
     revalidatePath("/privacy-policy");
 
     return ApiResponse.success({

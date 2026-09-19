@@ -8,7 +8,7 @@ import { getPageContent } from "@/lib/getPageContent";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 900;
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata(await getPageMeta("terms-conditions"));

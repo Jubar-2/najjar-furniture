@@ -9,7 +9,7 @@ import {
   readPageContentFromJson,
 } from "@/schemas/pageContent.schema";
 import { ApiResponse } from "@/lib/apiResponse";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 const PAGE_NAME = "terms-conditions";
 const SECTION_TYPE = "terms-conditions";
@@ -43,6 +43,8 @@ export async function POST(req: NextRequest) {
       content: { body: parsed.data.body },
     });
 
+    revalidateTag("page-content-terms-conditions", "max");
+    revalidateTag("page-content", "max");
     revalidatePath("/terms-conditions");
 
     return ApiResponse.success(section, "Terms & conditions created", 201);
@@ -97,6 +99,8 @@ export async function PATCH(req: NextRequest) {
     section.markModified("content");
     await section.save();
 
+    revalidateTag("page-content-terms-conditions", "max");
+    revalidateTag("page-content", "max");
     revalidatePath("/terms-conditions");
 
     return ApiResponse.success({

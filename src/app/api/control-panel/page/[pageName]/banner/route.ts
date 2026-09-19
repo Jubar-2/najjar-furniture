@@ -11,7 +11,7 @@ import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/services/C
 import { ApiResponse } from "@/lib/apiResponse";
 import { normalizePageName } from "@/lib/getPageBanner";
 import { getSitePage } from "@/lib/sitePages";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // GET /api/control-panel/page/:pageName/banner
 export async function GET(
@@ -141,6 +141,8 @@ export async function PATCH(
     };
     const targetPath = routeMap[normalized] || `/${normalized}`;
     try {
+      revalidateTag(`page-banner-${normalized}`, "max");
+      revalidateTag("page-banner", "max");
       revalidatePath(targetPath);
     } catch (revalError) {
       console.error(`Failed to revalidate path "${targetPath}":`, revalError);

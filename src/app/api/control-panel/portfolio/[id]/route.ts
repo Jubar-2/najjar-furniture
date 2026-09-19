@@ -5,6 +5,7 @@ import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/services/C
 import PortfolioItem from "@/models/portfolioItem.model";
 import { PortfolioItemUpdateSchema, readPortfolioItemFromFormData } from "@/schemas/portfolioItem.schema";
 import { ApiResponse } from "@/lib/apiResponse";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // PATCH /api/control-panel/portfolio/:id
 // Updates only the fields actually sent — title, category, description
@@ -104,6 +105,13 @@ export async function PATCH(req: NextRequest, { params }: RouteContext<"/api/con
 
     await item.save();
 
+    try {
+      revalidateTag("portfolio-items", "max");
+      revalidatePath("/portfolio");
+    } catch (revalErr) {
+      console.error("Failed to revalidate /portfolio:", revalErr);
+    }
+
     return ApiResponse.success(item);
   } catch (error) {
     console.error("PATCH /control-panel/portfolio/:id failed:", error);
@@ -133,6 +141,13 @@ export async function DELETE(_req: NextRequest, { params }: RouteContext<"/api/c
           await deleteUploadedFileOnCloudinary(sub.publicId, "image");
         }
       }
+    }
+
+    try {
+      revalidateTag("portfolio-items", "max");
+      revalidatePath("/portfolio");
+    } catch (revalErr) {
+      console.error("Failed to revalidate /portfolio:", revalErr);
     }
 
     return ApiResponse.success({ id });

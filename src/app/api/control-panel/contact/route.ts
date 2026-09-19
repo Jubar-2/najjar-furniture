@@ -5,6 +5,7 @@ import PageModel from "@/models/page.model";
 import PageSection from "@/models/pageSections.model";
 import { ContactSchema } from "@/schemas/contact.schema";
 import { ApiResponse } from "@/lib/apiResponse";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 const PAGE_NAME = "contact";
 const SECTION_TYPE = "contact";
@@ -44,6 +45,13 @@ export async function PATCH(req: NextRequest) {
       section.content = parsed.data;
       section.markModified("content");
       await section.save();
+    }
+
+    try {
+      revalidateTag("contact-section", "max");
+      revalidatePath("/contact-us");
+    } catch (revalErr) {
+      console.error("Failed to revalidate /contact-us:", revalErr);
     }
 
     return ApiResponse.success({

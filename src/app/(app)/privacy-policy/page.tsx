@@ -6,7 +6,7 @@ import { getPageBanner } from "@/lib/getPageBanner";
 import { getPageContent } from "@/lib/getPageContent";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 900;
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata(await getPageMeta("privacy-policy"));

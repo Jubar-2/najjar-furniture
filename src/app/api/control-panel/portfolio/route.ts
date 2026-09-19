@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "@/services/Cloudinary";
 import PortfolioItem from "@/models/portfolioItem.model";
 import { PortfolioItemCreateSchema, readPortfolioItemFromFormData } from "@/schemas/portfolioItem.schema";
 import { ApiResponse } from "@/lib/apiResponse";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // POST /api/control-panel/portfolio
 // Creates a portfolio item. Image upload is required.
@@ -54,6 +55,13 @@ export async function POST(req: NextRequest) {
       imagePublicId: imageCloud.public_id,
       subImages: uploadedSubImages,
     });
+
+    try {
+      revalidateTag("portfolio-items", "max");
+      revalidatePath("/portfolio");
+    } catch (revalErr) {
+      console.error("Failed to revalidate /portfolio:", revalErr);
+    }
 
     return ApiResponse.success(item, "Portfolio item created", 201);
   } catch (error) {

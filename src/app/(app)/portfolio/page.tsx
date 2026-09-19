@@ -7,25 +7,39 @@ import dbConnect from "@/db/dbConnect";
 import PortfolioItem from "@/models/portfolioItem.model";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+import { unstable_cache } from "next/cache";
+
+export const revalidate = 900;
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata(await getPageMeta("portfolio"));
 }
 
+async function fetchPortfolioItemsFromDb() {
+  await dbConnect();
+  const items = await PortfolioItem.find().sort({ createdAt: -1 }).lean();
+  const formatted = items.map((item) => ({
+    ...item,
+    subImages: Array.isArray(item.subImages)
+      ? item.subImages
+          .map((s: any) => (typeof s === "string" ? s : s?.url))
+          .filter(Boolean)
+      : [],
+  }));
+  return JSON.parse(JSON.stringify(formatted));
+}
+
 async function getPortfolioItems() {
   try {
-    await dbConnect();
-    const items = await PortfolioItem.find().sort({ createdAt: -1 }).lean();
-    const formatted = items.map((item) => ({
-      ...item,
-      subImages: Array.isArray(item.subImages)
-        ? item.subImages
-            .map((s: any) => (typeof s === "string" ? s : s?.url))
-            .filter(Boolean)
-        : [],
-    }));
-    return JSON.parse(JSON.stringify(formatted));
+    const getCachedItems = unstable_cache(
+      fetchPortfolioItemsFromDb,
+      ["portfolio-items"],
+      {
+        revalidate: 900,
+        tags: ["portfolio-items"],
+      }
+    );
+    return await getCachedItems();
   } catch (error) {
     console.error("Failed to load portfolio items on server:", error);
     return [];

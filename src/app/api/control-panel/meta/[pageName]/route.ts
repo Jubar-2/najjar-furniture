@@ -5,6 +5,7 @@ import PageModel from "@/models/page.model";
 import { getSitePage } from "@/lib/sitePages";
 import { PageMetaSchema, readPageMetaFromJson } from "@/schemas/pageMeta.schema";
 import { ApiResponse } from "@/lib/apiResponse";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // PATCH /api/control-panel/meta/:pageName
 // Updates the meta settings for a single page. Auto-creates the Page record
@@ -69,6 +70,16 @@ export async function PATCH(
     if (meta_author !== undefined) page.meta_author = meta_author;
 
     await page.save();
+
+    try {
+      revalidateTag(`page-meta-${pageName}`, "max");
+      revalidateTag("page-meta", "max");
+      if (sitePage.route) {
+        revalidatePath(sitePage.route);
+      }
+    } catch (revalErr) {
+      console.error(`Failed to revalidate meta for ${pageName}:`, revalErr);
+    }
 
     return ApiResponse.success({
       pageName,
