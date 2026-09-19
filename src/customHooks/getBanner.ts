@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
 export interface HeroContent {
@@ -22,8 +22,16 @@ export const useGetBanner = () => {
     });
 }
 
-export const useUpdateBanner = () => useMutation({
-    mutationFn: async (formData: FormData) => {
-        await axios.patch("/api/control-panel/page/home/hero", formData);
-    }
-});
+export const useUpdateBanner = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (formData: FormData) => {
+            const { data } = await axios.patch("/api/control-panel/page/home/hero", formData);
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: HOME_HERO_QUERY_KEY });
+        },
+    });
+};

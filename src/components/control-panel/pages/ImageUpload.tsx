@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { Upload, X, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,10 @@ export default function ImageUpload({
   const [preview, setPreview] = useState<string | null>(value ?? null);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setPreview(value ?? null);
+  }, [value]);
 
   const handleFile = useCallback(
     (file: File | undefined) => {
@@ -58,6 +62,7 @@ export default function ImageUpload({
             src={preview}
             alt="Uploaded preview"
             fill
+            unoptimized
             className="object-cover"
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
