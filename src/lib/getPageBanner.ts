@@ -4,8 +4,10 @@ import PageSection from "@/models/pageSections.model";
 import type { PageBannerData } from "@/schemas/pageBanner.schema";
 
 export function normalizePageName(pageName: string): string {
-  if (pageName === "contact-us") return "contact";
-  return pageName;
+  const trimmed = pageName.trim();
+  if (trimmed === "contact-us") return "contact";
+  if (trimmed === "terms-and-conditions") return "terms-conditions";
+  return trimmed;
 }
 
 export async function getPageBanner(pageName: string): Promise<PageBannerData | null> {

@@ -11,8 +11,8 @@ const connection: ConnectionObject = {};
 
 async function dbConnect(): Promise<void> {
 
-  if (connection.isConnected) {
-    console.log("[MongoDB] Already connected");
+  if (mongoose.connection.readyState >= 1) {
+    connection.isConnected = mongoose.connection.readyState;
     return;
   }
 
@@ -39,7 +39,7 @@ async function dbConnect(): Promise<void> {
       console.error("Unknown error during MongoDB connection");
     }
 
-    process.exit(1);
+    throw error;
   }
 }
 

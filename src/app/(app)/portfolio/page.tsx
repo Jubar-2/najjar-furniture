@@ -7,6 +7,8 @@ import dbConnect from "@/db/dbConnect";
 import PortfolioItem from "@/models/portfolioItem.model";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata(await getPageMeta("portfolio"));
 }

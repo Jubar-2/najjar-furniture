@@ -11,6 +11,7 @@ import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/services/C
 import { ApiResponse } from "@/lib/apiResponse";
 import { normalizePageName } from "@/lib/getPageBanner";
 import { getSitePage } from "@/lib/sitePages";
+import { revalidatePath } from "next/cache";
 
 // GET /api/control-panel/page/:pageName/banner
 export async function GET(
@@ -125,6 +126,24 @@ export async function PATCH(
       section.content = updatedContent;
       section.markModified("content");
       await section.save();
+    }
+
+    const routeMap: Record<string, string> = {
+      "terms-conditions": "/terms-conditions",
+      "terms-and-conditions": "/terms-conditions",
+      "contact": "/contact-us",
+      "contact-us": "/contact-us",
+      "portfolio": "/portfolio",
+      "about-us": "/about-us",
+      "about": "/about-us",
+      "privacy-policy": "/privacy-policy",
+      "home": "/",
+    };
+    const targetPath = routeMap[normalized] || `/${normalized}`;
+    try {
+      revalidatePath(targetPath);
+    } catch (revalError) {
+      console.error(`Failed to revalidate path "${targetPath}":`, revalError);
     }
 
     return ApiResponse.success(section, "Banner updated successfully.");
