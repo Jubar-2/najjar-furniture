@@ -8,10 +8,8 @@ import HomeGalleryClient from "@/components/clint-components/home/HomeGalleryCli
 import HomePortfolioClient from "@/components/clint-components/home/HomePortfolioClient";
 import HomeTestimonialsClient from "@/components/clint-components/home/HomeTestimonialsClient";
 import HomeLayer3Client from "@/components/clint-components/home/HomeLayer3Client";
-import AboutUs from "@/components/app/home/AboutUs";
+import HomeAboutClient from "@/components/clint-components/home/HomeAboutClient";
 import Footer from "@/components/app/Footer";
-
-import About from "@/assets/image/banner/about.png";
 
 import { HOME_HERO_QUERY_KEY } from "@/customHooks/getBanner";
 import { HOME_LAYER1_QUERY_KEY } from "@/customHooks/useHomeLayer1";
@@ -19,6 +17,7 @@ import { HOME_LAYER2_QUERY_KEY } from "@/customHooks/useHomeLayer2";
 import { HOME_LAYER3_QUERY_KEY } from "@/customHooks/useHomeLayer3";
 import { HOME_PORTFOLIO_QUERY_KEY } from "@/customHooks/usePortfolio";
 import { HOME_TESTIMONIALS_QUERY_KEY } from "@/customHooks/useTestimonials";
+import { HOME_ABOUT_QUERY_KEY } from "@/customHooks/useHomeAbout";
 import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
 import type { Metadata } from "next";
 
@@ -70,6 +69,10 @@ export default async function Home() {
             queryFn: () => serverFetch(baseUrl, "/api/page/home/portfolio"),
         }),
         queryClient.prefetchQuery({
+            queryKey: HOME_ABOUT_QUERY_KEY,
+            queryFn: () => serverFetch(baseUrl, "/api/page/home/about"),
+        }),
+        queryClient.prefetchQuery({
             queryKey: HOME_TESTIMONIALS_QUERY_KEY,
             queryFn: async () => {
                 try {
@@ -99,8 +102,8 @@ export default async function Home() {
             {/* Portfolio showcase — dynamic from DB */}
             <HomePortfolioClient />
 
-            {/* About Us (static) */}
-            <AboutUs imageSrc={About} />
+            {/* About Us — dynamic from DB */}
+            <HomeAboutClient />
 
             {/* Testimonials — dynamic from DB */}
             <HomeTestimonialsClient />

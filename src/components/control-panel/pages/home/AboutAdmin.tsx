@@ -6,19 +6,8 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ImageUpload from "@/components/control-panel/pages/ImageUpload";
 import TiptapEditor from "@/components/control-panel/pages/TiptapEditor";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-interface AboutImage {
-    url?: string;
-    publicId?: string;
-}
-
-interface AboutContent {
-    paragraph?: string;
-    image?: AboutImage;
-}
-
-const QUERY_KEY = ["home-about"];
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useGetHomeAbout, HOME_ABOUT_QUERY_KEY } from "@/customHooks/useHomeAbout";
 
 export default function AboutAdmin() {
     const queryClient = useQueryClient();
@@ -30,25 +19,7 @@ export default function AboutAdmin() {
     const hasInitializedRef = useRef(false);
 
     // ── Fetch ──────────────────────────────────────────────────────────────
-    const { data: content, isLoading } = useQuery<AboutContent | null>({
-        queryKey: QUERY_KEY,
-        queryFn: async () => {
-            try {
-                const { data } = await axios.get("/api/page/home/about");
-                return data.data?.content ?? null;
-            } catch (err: unknown) {
-                if (axios.isAxiosError(err) && err.response?.status === 404) {
-                    return null; // section doesn't exist yet
-                }
-                const message = axios.isAxiosError(err)
-                    ? (err.response?.data?.message ?? err.response?.data?.error ?? err.message)
-                    : "Failed to load.";
-                throw new Error(message);
-            }
-        },
-        staleTime: 15 * 60 * 1000,
-        refetchOnWindowFocus: false,
-    });
+    const { data: content, isLoading } = useGetHomeAbout();
 
     // Populate paragraph once when content is loaded
     useEffect(() => {
@@ -98,7 +69,7 @@ export default function AboutAdmin() {
             setError(null);
             setImageFile(null);
             hasInitializedRef.current = false;
-            queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+            queryClient.invalidateQueries({ queryKey: HOME_ABOUT_QUERY_KEY });
         },
         onError: (err) => {
             setError(err instanceof Error ? err.message : "Save failed.");
