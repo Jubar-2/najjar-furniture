@@ -89,7 +89,7 @@ export default function PortfolioShowcase({
             <div className="mt-6 sm:mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
               {stats.map((stat) => (
                 <div key={stat.label} className="relative z-10 flex flex-col items-start gap-1 p-2">
-                  <div className="absolute -left-1 -top-1.5 -z-10 h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-[#FDF0B4]"></div>
+                  <div className="absolute left-0.5 -top-px -z-10 h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-[#FDF0B4]"></div>
                   <div className="text-[#6b3f22]">{stat.icon}</div>
                   <span className="mt-2 block text-base sm:text-lg md:text-xl font-bold text-[#381604]">
                     {stat.value}

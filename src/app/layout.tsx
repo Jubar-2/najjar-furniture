@@ -39,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${notoSansArabic.className} ${cormorantUpright.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col max-w-[2560px] mx-auto" suppressHydrationWarning>
         <QueryClientProvider>
           {children}
         </QueryClientProvider>

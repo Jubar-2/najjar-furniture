@@ -21,7 +21,7 @@ export function Panel({
   background,
 }: ProductPanel) {
   return (
-    <div className={`relative flex flex-col items-center px-4 sm:px-8 pb-0 pt-8 sm:pt-10 text-center overflow-hidden shadow-xs ${background}`}>
+    <div className={`relative flex flex-col items-center px-4 sm:px-8 pb-5 pt-8 sm:pt-10 text-center overflow-hidden shadow-xs ${background}`}>
       <h3 className="text-base sm:text-lg md:text-xl font-bold text-[#2b241f]">{title}</h3>
       <p className="mt-2 max-w-70 sm:max-w-xs text-xs sm:text-[13px] leading-relaxed text-[#2b241f]/75">
         {description}
