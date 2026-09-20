@@ -87,7 +87,7 @@ export default function AdminLoginPage() {
                             <Badge className="bg-emerald-500/20 text-emerald-400 border-none font-black px-3 py-1 rounded-lg text-[10px] uppercase tracking-[0.2em]">
                                 Admin Portal
                             </Badge>
-                            <h1 className="text-2xl font-black tracking-tight">NexShop Command</h1>
+                            <h1 className="text-2xl font-black tracking-tight">Najjar Riyad Furniture Command</h1>
                         </div>
                     </CardHeader>
 
@@ -101,7 +101,7 @@ export default function AdminLoginPage() {
                                     <Input
                                         {...register("email")}
                                         disabled={isLoading}
-                                        placeholder="admin@nexshop.com"
+                                        placeholder="email"
                                         className={`h-14 pl-12 rounded-2xl border-2 transition-all font-semibold ${errors.email ? 'border-red-500 focus-visible:ring-red-500/10' : 'border-slate-50 bg-slate-50 focus:bg-white focus:border-slate-900 focus-visible:ring-0'}`}
                                     />
                                 </div>
