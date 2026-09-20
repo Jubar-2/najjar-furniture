@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Container from "@/components/utils/Container";
 import { resolveSocialIcon } from "@/lib/contact";
+import { getWhatsAppUrl } from "@/lib/whatsapp";
 import type { SocialLink } from "@/schemas/contact.schema";
 
 function formatName(name: string): string {
@@ -27,10 +28,14 @@ export default function ConnectChannels({ socials }: { socials: SocialLink[] }) 
           {socials && socials.length > 0 ? (
             socials.map((channel) => {
               const Icon = resolveSocialIcon(channel.name);
+              const href =
+                channel.name?.toLowerCase() === "whatsapp"
+                  ? getWhatsAppUrl(channel.url)
+                  : channel.url || "#";
               return (
                 <Link
                   key={channel.name + channel.url}
-                  href={channel.url || "#"}
+                  href={href}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex flex-col gap-3 rounded-2xl border border-[#e5ded3] bg-[#fdf6ee] p-5 transition-colors hover:border-[#c9a06a]"
@@ -44,7 +49,7 @@ export default function ConnectChannels({ socials }: { socials: SocialLink[] }) 
                     </span>
                   </div>
 
-                  <p className="truncate text-[11.5px] text-[#3a2c22]/60">{channel.url}</p>
+                  <p className="truncate text-[11.5px] text-[#3a2c22]/75">{channel.url}</p>
                 </Link>
               );
             })

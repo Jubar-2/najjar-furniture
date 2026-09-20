@@ -91,6 +91,11 @@ export default function TestimonialsSlider({
              flex items-center 
              justify-center 
              gap-1.5 
+             [&_.swiper-pagination-bullet]:relative
+             [&_.swiper-pagination-bullet]:before:content-['']
+             [&_.swiper-pagination-bullet]:before:absolute
+             [&_.swiper-pagination-bullet]:before:-inset-2.5
+             [&_.swiper-pagination-bullet]:cursor-pointer
              [&_.swiper-pagination-bullet]:h-1.5 
              [&_.swiper-pagination-bullet]:w-1.5 
              [&_.swiper-pagination-bullet]:rounded-full 

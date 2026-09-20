@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import Container from "@/components/utils/Container";
+import { getWhatsAppUrl } from "@/lib/whatsapp";
 
 interface ContactCTAProps {
   title?: string;
@@ -17,6 +18,8 @@ export default function ContactCTA({
   ctaLabel = "Chat With Us",
   ctaHref = "https://wa.me/8801XXXXXXXXX",
 }: ContactCTAProps) {
+  const resolvedHref = getWhatsAppUrl(ctaHref);
+
   return (
     <section className="bg-[#fdf6ee] py-10 sm:py-16">
       <Container>
@@ -30,7 +33,9 @@ export default function ContactCTA({
           <p className="max-w-md text-xs sm:text-[13px] leading-relaxed text-[#f2ead9]/75">{description}</p>
 
           <Link
-            href={ctaHref}
+            href={resolvedHref}
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-2 sm:mt-3 inline-flex items-center gap-2.5 rounded-full bg-[#c9a06a] px-6 py-3 text-xs sm:text-[13px] font-semibold text-[#2c160d] transition-colors hover:bg-[#d9b27f]"
           >
             {ctaLabel}

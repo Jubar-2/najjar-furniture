@@ -21,7 +21,7 @@ export default function ContactHelpCategories({ topics }: ContactHelpCategoriesP
           <h2 className="text-lg font-semibold text-[#2b1810] md:text-xl">
             What do you need help with?
           </h2>
-          <p className="mt-1.5 text-[12.5px] text-[#3a2c22]/60">
+          <p className="mt-1.5 text-[12.5px] text-[#3a2c22]/75">
             Tap a topic to jump straight to the form, or just send us a message below.
           </p>
         </div>
@@ -45,7 +45,7 @@ export default function ContactHelpCategories({ topics }: ContactHelpCategoriesP
               );
             })
           ) : (
-            <p className="text-[12.5px] text-[#3a2c22]/60">Topics are being set up.</p>
+            <p className="text-[12.5px] text-[#3a2c22]/75">Topics are being set up.</p>
           )}
         </div>
       </Container>

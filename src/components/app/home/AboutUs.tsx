@@ -1,5 +1,6 @@
 import Image, { StaticImageData } from "next/image";
 import Container from "@/components/utils/Container";
+import { optimizeCloudinaryUrl } from "@/lib/images";
 
 interface AboutUsProps {
   imageSrc: string | StaticImageData;
@@ -32,9 +33,10 @@ export default function AboutUs({
               <div className="w-full h-full bg-neutral-200 animate-pulse" />
             ) : (
               <Image
-                src={imageSrc}
+                src={typeof imageSrc === "string" ? optimizeCloudinaryUrl(imageSrc, { width: 600 }) : imageSrc}
                 alt={imageAlt}
                 fill
+                sizes="(max-width: 640px) 320px, 384px"
                 className="object-cover object-top text-transparent"
               />
             )}

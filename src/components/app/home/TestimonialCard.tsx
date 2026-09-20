@@ -45,11 +45,11 @@ export function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 
         <div className="flex items-center gap-3">
           <div className="relative size-12 sm:size-14 shrink-0 overflow-hidden rounded-full">
-            <Image src={avatarSrc} alt={name} fill className="object-cover" />
+            <Image src={avatarSrc} alt={name} fill sizes="56px" className="object-cover" />
           </div>
           <div>
             <p className="text-sm sm:text-base font-semibold text-[#000000]">{name}</p>
-            <p className="text-xs sm:text-[13px] text-[#3a2c22]/60">{location}</p>
+            <p className="text-xs sm:text-[13px] text-[#3a2c22]/80">{location}</p>
           </div>
         </div>
       </div>

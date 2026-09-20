@@ -109,7 +109,7 @@ export default async function PrivacyPolicyPage() {
       <section className="bg-white py-14">
         <Container>
           <div className="mx-auto max-w-3xl">
-            <p className="text-[12px] text-[#3a2c22]/60" suppressHydrationWarning>
+            <p className="text-[12px] text-[#3a2c22]/75" suppressHydrationWarning>
               Last updated: {updatedLabel}
             </p>
 

@@ -28,7 +28,13 @@ export default function PortfolioCard({
         >
             {/* Main image */}
             <div className="relative aspect-[16/10] w-full">
-                <Image src={mainImage} alt={title} fill className="object-cover" />
+                <Image
+                    src={mainImage}
+                    alt={title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover"
+                />
                 {category && (
                     <span className="absolute top-3 left-3 rounded-full bg-black/60 backdrop-blur-xs px-3 py-1 text-[11px] font-medium text-white shadow-xs">
                         {category}
@@ -50,7 +56,13 @@ export default function PortfolioCard({
                     <div className="grid grid-cols-3 gap-1.5 p-1.5">
                         {thumbs.map((src, i) => (
                             <div key={i} className="relative aspect-4/3 overflow-hidden rounded-lg">
-                                <Image src={src} alt={`${title} detail ${i + 1}`} fill className="object-cover" />
+                                <Image
+                                    src={src}
+                                    alt={`${title} detail ${i + 1}`}
+                                    fill
+                                    sizes="(max-width: 640px) 30vw, 15vw"
+                                    className="object-cover"
+                                />
                             </div>
                         ))}
                     </div>

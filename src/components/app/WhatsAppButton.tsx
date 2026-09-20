@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { getWhatsAppUrl } from "@/lib/whatsapp";
 
 interface WhatsAppButtonProps {
-    phoneNumber?: string; // digits only, with country code — e.g. "8801XXXXXXXXX"
+    phoneNumber?: string; // e.g. "+880 1712-345678", "01712-345678", or "8801XXXXXXXXX"
     message?: string;
     label?: string;
     className?: string;
@@ -14,8 +15,7 @@ export default function WhatsAppButton({
     label = "Chat on WhatsApp",
     className = "",
 }: WhatsAppButtonProps) {
-    const cleanPhone = phoneNumber ? phoneNumber.replace(/\D/g, "") : "";
-    const href = `https://wa.me/${cleanPhone}${message ? `?text=${encodeURIComponent(message)}` : ""}`;
+    const href = getWhatsAppUrl(phoneNumber, message);
 
     return (
         <Link

@@ -3,6 +3,8 @@ import Header from "../Header";
 import Container from "@/components/utils/Container";
 import { HeroTextSkeleton } from "./HeroTextSkeleton";
 import WhatsAppButton from "@/components/app/WhatsAppButton";
+import { DEFAULT_CONTACT } from "@/lib/contact";
+import { optimizeCloudinaryUrl } from "@/lib/images";
 
 interface HeroProps {
     imageSrc?: string | StaticImageData;
@@ -23,7 +25,7 @@ export default function Hero({
     description = "Every piece is thoughtfully designed and expertly handcrafted to combine natural beauty, lasting durability, and refined elegance—creating furniture that belongs in your space for generations",
     ctaLabel = "Chat on WhatsApp",
     ctaHref,
-    whatsAppNumber,
+    whatsAppNumber = DEFAULT_CONTACT.whatsapps[0]?.value || "8801XXXXXXXXX",
     isLoading = false,
 }: HeroProps) {
     return (
@@ -34,10 +36,11 @@ export default function Hero({
                     <div className="absolute inset-0 animate-pulse bg-[#2c2620]" />
                 ) : (
                     <Image
-                        src={imageSrc}
+                        src={typeof imageSrc === "string" ? optimizeCloudinaryUrl(imageSrc, { width: 1920 }) : imageSrc}
                         alt={imageAlt}
                         fill
                         priority
+                        sizes="100vw"
                         className="object-cover object-center"
                     />
                 )}

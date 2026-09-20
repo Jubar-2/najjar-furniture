@@ -17,6 +17,8 @@ import {
     MessageCircle,
     Check,
 } from "lucide-react";
+import { getWhatsAppUrl } from "@/lib/whatsapp";
+import { DEFAULT_CONTACT } from "@/lib/contact";
 import PortfolioCard from "./PortfolioCard";
 
 export interface PortfolioItem {
@@ -37,11 +39,10 @@ function PortfolioGridSkeleton({ viewMode }: { viewMode: "large" | "grid" }) {
     const isLarge = viewMode === "large";
     return (
         <div
-            className={`grid ${
-                isLarge
+            className={`grid ${isLarge
                     ? "grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10"
                     : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-            }`}
+                }`}
         >
             {Array.from({ length: isLarge ? 4 : 6 }).map((_, i) => (
                 <div
@@ -133,11 +134,10 @@ export default function PortfolioGrid({
                                 key={category}
                                 type="button"
                                 onClick={() => setSelectedCategory(category)}
-                                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                                    selectedCategory === category
+                                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer ${selectedCategory === category
                                         ? "bg-[#602100] text-white shadow-sm shadow-amber-950/20"
                                         : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-                                }`}
+                                    }`}
                             >
                                 {category}
                             </button>
@@ -149,11 +149,10 @@ export default function PortfolioGrid({
                         <button
                             type="button"
                             onClick={() => setViewMode("large")}
-                            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                                viewMode === "large"
+                            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${viewMode === "large"
                                     ? "bg-[#602100] text-white shadow-xs"
                                     : "text-neutral-600 hover:text-neutral-900"
-                            }`}
+                                }`}
                             title="Large showcase mode"
                         >
                             <Columns2 className="size-3.5" />
@@ -162,11 +161,10 @@ export default function PortfolioGrid({
                         <button
                             type="button"
                             onClick={() => setViewMode("grid")}
-                            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                                viewMode === "grid"
+                            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${viewMode === "grid"
                                     ? "bg-[#602100] text-white shadow-xs"
                                     : "text-neutral-600 hover:text-neutral-900"
-                            }`}
+                                }`}
                             title="Standard grid mode"
                         >
                             <LayoutGrid className="size-3.5" />
@@ -180,11 +178,10 @@ export default function PortfolioGrid({
                     <PortfolioGridSkeleton viewMode={viewMode} />
                 ) : filteredItems.length > 0 ? (
                     <div
-                        className={`grid ${
-                            viewMode === "large"
+                        className={`grid ${viewMode === "large"
                                 ? "grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10"
                                 : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                        }`}
+                            }`}
                     >
                         {filteredItems.map((item) => (
                             <PortfolioCard
@@ -219,7 +216,7 @@ export default function PortfolioGrid({
             {selected && (
                 <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
                     <DialogContent className="max-w-5xl lg:max-w-6xl w-[96vw] sm:w-[94vw] max-h-[92vh] overflow-y-auto p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-neutral-200/90 shadow-2xl bg-white gap-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 lg:items-stretch">
                             {/* Left Gallery (7 cols on desktop) */}
                             <div className="lg:col-span-7 space-y-3 sm:space-y-4">
                                 {/* Hero Active Image */}
@@ -245,11 +242,10 @@ export default function PortfolioGrid({
                                         type="button"
                                         onClick={() => setModalActiveImage(selected.image)}
                                         aria-label="View main photo"
-                                        className={`relative aspect-4/3 overflow-hidden rounded-lg sm:rounded-xl border-2 transition-all cursor-pointer ${
-                                            (modalActiveImage || selected.image) === selected.image
+                                        className={`relative aspect-4/3 overflow-hidden rounded-lg sm:rounded-xl border-2 transition-all cursor-pointer ${(modalActiveImage || selected.image) === selected.image
                                                 ? "border-[#602100] ring-2 ring-[#602100]/30 scale-[1.02] shadow-xs"
                                                 : "border-neutral-200/80 opacity-70 hover:opacity-100 hover:scale-[1.02]"
-                                        }`}
+                                            }`}
                                     >
                                         <Image
                                             src={selected.image}
@@ -278,11 +274,10 @@ export default function PortfolioGrid({
                                                     type="button"
                                                     onClick={() => setModalActiveImage(src)}
                                                     aria-label={`View detail photo ${idx + 1}`}
-                                                    className={`relative aspect-4/3 overflow-hidden rounded-lg sm:rounded-xl border-2 transition-all cursor-pointer ${
-                                                        isActive
+                                                    className={`relative aspect-4/3 overflow-hidden rounded-lg sm:rounded-xl border-2 transition-all cursor-pointer ${isActive
                                                             ? "border-[#602100] ring-2 ring-[#602100]/30 scale-[1.02] shadow-xs"
                                                             : "border-neutral-200/80 opacity-70 hover:opacity-100 hover:scale-[1.02]"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <Image
                                                         src={src}
@@ -299,7 +294,7 @@ export default function PortfolioGrid({
                             </div>
 
                             {/* Right Info & Inquiries (5 cols on desktop) */}
-                            <div className="lg:col-span-5 flex flex-col justify-between space-y-5">
+                            <div className="lg:col-span-5 flex flex-col justify-between h-full">
                                 <div>
                                     <DialogHeader className="text-left space-y-2">
                                         {selected.category && (
@@ -320,25 +315,10 @@ export default function PortfolioGrid({
                                         {stripHtml(selected.description)}
                                     </div>
 
-                                    {/* Specifications / Highlights */}
-                                    <div className="mt-5 pt-4 border-t border-neutral-100 space-y-2.5 text-xs sm:text-sm text-neutral-600">
-                                        <div className="flex items-center gap-2">
-                                            <Check className="size-4 text-[#602100] shrink-0" />
-                                            <span>Handcrafted with genuine solid natural wood</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Check className="size-4 text-[#602100] shrink-0" />
-                                            <span>Custom dimensions, colors & finishes upon request</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Check className="size-4 text-[#602100] shrink-0" />
-                                            <span>Meticulously sanded, assembled, and protected</span>
-                                        </div>
-                                    </div>
                                 </div>
 
                                 {/* Call to action buttons */}
-                                <div className="pt-4 border-t border-neutral-200/80 flex flex-col sm:flex-row gap-3">
+                                <div className="mt-6 lg:mt-auto pt-4 border-t border-neutral-200/80 flex flex-col sm:flex-row gap-3">
                                     <Link
                                         href="/contact-us"
                                         className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-[#602100] px-5 py-3 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-[#4a1900] transition-colors"
@@ -347,9 +327,10 @@ export default function PortfolioGrid({
                                         <ArrowRight className="size-4" />
                                     </Link>
                                     <a
-                                        href={`https://wa.me/8801?text=${encodeURIComponent(
+                                        href={getWhatsAppUrl(
+                                            DEFAULT_CONTACT.whatsapps[0]?.value || "8801XXXXXXXXX",
                                             `Hello Najjar Furniture! I am interested in custom ordering or learning more about the "${selected.title}" piece from your portfolio.`
-                                        )}`}
+                                        )}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"

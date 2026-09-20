@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -11,6 +12,7 @@ import {
   SearchCheck,
   Inbox,
   LogOut,
+  Settings,
 } from "lucide-react";
 import NavItem from "./NavItem";
 import { useSession, signOut } from "next-auth/react";
@@ -131,19 +133,29 @@ export const SidebarContent = ({
           label="Meta & SEO"
           href="/control-panel/meta"
         />
+
+        {/* Account & Security Settings */}
+        <NavItem
+          isCollapsed={isCollapsed}
+          icon={<Settings size={20} />}
+          label="Settings"
+          href="/control-panel/settings"
+        />
       </div>
 
       {/* Footer Area: User Profile & Sign Out */}
       <div className="p-3 border-t border-slate-100 space-y-2.5 bg-white">
-        {/* User Profile Info */}
-        <div
+        {/* User Profile Info (links to Settings) */}
+        <Link
+          href="/control-panel/settings"
+          title="Account Settings"
           className={cn(
-            "flex items-center gap-3 p-2 rounded-2xl bg-slate-50/80 border border-slate-100",
+            "flex items-center gap-3 p-2 rounded-2xl bg-slate-50/80 hover:bg-amber-50/60 border border-slate-100 hover:border-amber-200/70 transition-all cursor-pointer group",
             isCollapsed ? "justify-center p-1.5" : ""
           )}
         >
-          <Avatar className="h-9 w-9 border-2 border-white shadow-2xs shrink-0">
-            <AvatarFallback className="bg-amber-100 text-amber-800 font-bold text-xs">
+          <Avatar className="h-9 w-9 border-2 border-white shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+            <AvatarFallback className="bg-amber-100 text-amber-800 font-bold text-xs group-hover:bg-amber-200">
               {session?.user?.email
                 ? session.user.email.slice(0, 2).toUpperCase()
                 : "AD"}
@@ -151,17 +163,17 @@ export const SidebarContent = ({
           </Avatar>
           {!isCollapsed && (
             <div className="flex flex-col leading-tight overflow-hidden min-w-0">
-              <span className="text-xs font-bold text-slate-800 truncate">
+              <span className="text-xs font-bold text-slate-800 group-hover:text-amber-900 truncate">
                 {session?.user?.email
                   ? session.user.email.split("@")[0]
                   : "Administrator"}
               </span>
-              <span className="text-[10px] text-slate-400 truncate">
+              <span className="text-[10px] text-slate-400 group-hover:text-amber-800/70 truncate">
                 {session?.user?.email || "admin@najjarfurniture.com"}
               </span>
             </div>
           )}
-        </div>
+        </Link>
 
         {/* Logout Button */}
         {isCollapsed ? (

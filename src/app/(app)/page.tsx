@@ -87,28 +87,30 @@ export default async function Home() {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            {/* Hero — dynamic from DB */}
-            <HomeHeroClint />
+            <main>
+                {/* Hero — dynamic from DB */}
+                <HomeHeroClint />
 
-            {/* Layer 1 & 2 banners — dynamic from DB */}
-            <HomeLayersClient />
+                {/* Layer 1 & 2 banners — dynamic from DB */}
+                <HomeLayersClient />
 
-            {/* Product feature splits — dynamic from DB (layer 3) */}
-            <HomeLayer3Client />
+                {/* Product feature splits — dynamic from DB (layer 3) */}
+                <HomeLayer3Client />
 
-            {/* Gallery — dynamic from DB */}
-            <HomeGalleryClient />
+                {/* Gallery — dynamic from DB */}
+                <HomeGalleryClient />
 
-            {/* Portfolio showcase — dynamic from DB */}
-            <HomePortfolioClient />
+                {/* Portfolio showcase — dynamic from DB */}
+                <HomePortfolioClient />
 
-            {/* About Us — dynamic from DB */}
-            <HomeAboutClient />
+                {/* About Us — dynamic from DB */}
+                <HomeAboutClient />
 
-            {/* Testimonials — dynamic from DB */}
-            <HomeTestimonialsClient />
+                {/* Testimonials — dynamic from DB */}
+                <HomeTestimonialsClient />
 
-            {/* <LogoMarquee logos={logos} /> */}
+                {/* <LogoMarquee logos={logos} /> */}
+            </main>
 
             <Footer />
         </HydrationBoundary>

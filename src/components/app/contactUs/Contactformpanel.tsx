@@ -67,7 +67,7 @@ export default function ContactFormPanel({ contact }: { contact: ContactSection 
           {/* Form */}
           <div className="rounded-2xl bg-white p-5 sm:p-6 md:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
             <h3 className="text-base sm:text-lg font-bold text-[#2b1810]">Send a Message</h3>
-            <p className="mt-1 text-xs sm:text-[12.5px] text-[#3a2c22]/60">
+            <p className="mt-1 text-xs sm:text-[12.5px] text-[#3a2c22]/75">
               Fill out the form and our team will get back to you shortly.
             </p>
 

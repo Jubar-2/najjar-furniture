@@ -71,7 +71,7 @@ async function TermsConditionsBody() {
   return (
     <>
       {updatedLabel && (
-        <p className="text-[12px] text-[#3a2c22]/60" suppressHydrationWarning>
+        <p className="text-[12px] text-[#3a2c22]/75" suppressHydrationWarning>
           Last updated: {updatedLabel}
         </p>
       )}

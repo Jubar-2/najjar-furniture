@@ -6,6 +6,7 @@ import type { Swiper as SwiperType } from "swiper";
 import { Pause, Play } from "lucide-react";
 
 import type { GalleryImage } from "@/customHooks/getGallery";
+import { optimizeCloudinaryUrl, getCloudinarySrcSet } from "@/lib/images";
 
 import "swiper/css";
 
@@ -147,7 +148,17 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
                 >
                     {normalizedMainImages.map((img, index) => (
                         <SwiperSlide key={`${img.publicId || "main"}-${index}`} className="w-[85%]! sm:w-[75%]! md:w-[60%]!">
-                            <img src={img.url} alt="Gallery" className="block w-full h-auto object-cover" />
+                            <img
+                                src={optimizeCloudinaryUrl(img.url, { width: 1200 })}
+                                srcSet={getCloudinarySrcSet(img.url, [480, 768, 1024, 1200, 1600])}
+                                sizes="(max-width: 640px) 85vw, (max-width: 768px) 75vw, (max-width: 1024px) 60vw, 1140px"
+                                alt="Gallery piece"
+                                loading={index < 2 ? "eager" : "lazy"}
+                                decoding="async"
+                                width={1200}
+                                height={640}
+                                className="block w-full h-auto object-cover"
+                            />
                         </SwiperSlide>
                     ))}
                 </Swiper>
@@ -166,7 +177,17 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
                     {normalizedSubImages.map((img, index) => (
                         <SwiperSlide key={`${img.publicId || "sub"}-${index}`} className="w-[55%]! sm:w-[38%]! md:w-[28%]! lg:w-[23%]!">
                             <div className="w-full">
-                                <img src={img.url} alt="Gallery thumbnail" className="block w-full h-auto object-cover" />
+                                <img
+                                    src={optimizeCloudinaryUrl(img.url, { width: 480 })}
+                                    srcSet={getCloudinarySrcSet(img.url, [240, 360, 480, 640])}
+                                    sizes="(max-width: 640px) 55vw, (max-width: 768px) 38vw, (max-width: 1024px) 28vw, 320px"
+                                    alt="Gallery thumbnail"
+                                    loading="lazy"
+                                    decoding="async"
+                                    width={480}
+                                    height={256}
+                                    className="block w-full h-auto object-cover"
+                                />
                             </div>
                         </SwiperSlide>
                     ))}
@@ -174,7 +195,7 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
 
                 {/* Custom navigator: progress dots + play/pause toggle */}
                 <div className="relative mt-5 flex items-center justify-center px-4">
-                    <div className="flex items-center gap-2 max-w-[70vw] overflow-x-auto py-1">
+                    <div className="flex items-center gap-0.5 sm:gap-1 max-w-[70vw] overflow-x-auto py-1">
                         {normalizedSubImages.map((_, index) => {
                             const isActive = index === activeIndex;
                             return (
@@ -183,15 +204,19 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
                                     type="button"
                                     aria-label={`Go to slide ${index + 1}`}
                                     onClick={() => handleDotClick(index)}
-                                    className={`relative shrink-0 overflow-hidden rounded-full bg-neutral-300 transition-all duration-300 ${isActive ? "h-1.5 w-7 sm:w-8" : "h-1.5 w-1.5"
-                                        }`}
+                                    className="group relative flex min-h-6 min-w-6 items-center justify-center p-1.5 shrink-0 cursor-pointer touch-manipulation focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-neutral-400 rounded-full"
                                 >
-                                    {isActive && (
-                                        <span
-                                            className="absolute inset-y-0 left-0 rounded-full bg-neutral-800"
-                                            style={{ width: `${progress}%` }}
-                                        />
-                                    )}
+                                    <span
+                                        className={`relative block shrink-0 overflow-hidden rounded-full bg-neutral-300 transition-all duration-300 ${isActive ? "h-1.5 w-7 sm:w-8" : "h-1.5 w-1.5"
+                                            }`}
+                                    >
+                                        {isActive && (
+                                            <span
+                                                className="absolute inset-y-0 left-0 rounded-full bg-neutral-800"
+                                                style={{ width: `${progress}%` }}
+                                            />
+                                        )}
+                                    </span>
                                 </button>
                             );
                         })}
@@ -201,12 +226,12 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
                             type="button"
                             onClick={toggleAutoplay}
                             aria-label={isPlaying ? "Pause autoplay" : "Resume autoplay"}
-                            className="flex size-7 items-center justify-center rounded-full bg-neutral-200 text-neutral-700 transition-colors hover:bg-neutral-300 shadow-xs"
+                            className="flex size-8 items-center justify-center rounded-full bg-neutral-200 text-neutral-700 transition-colors hover:bg-neutral-300 shadow-xs cursor-pointer"
                         >
                             {isPlaying ? (
-                                <Pause className="size-3" fill="currentColor" />
+                                <Pause className="size-3.5" fill="currentColor" />
                             ) : (
-                                <Play className="size-3" fill="currentColor" />
+                                <Play className="size-3.5" fill="currentColor" />
                             )}
                         </button>
                     </div>

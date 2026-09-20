@@ -46,7 +46,6 @@ export default function Header({ className = "" }: HeaderProps) {
                 width={43}
                 height={42}
                 priority
-                unoptimized
                 className="w-10.75 h-10.5 rounded-full object-cover shrink-0"
               />
             </Link>

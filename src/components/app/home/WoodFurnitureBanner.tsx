@@ -1,6 +1,7 @@
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import Container from "@/components/utils/Container";
+import { optimizeCloudinaryUrl } from "@/lib/images";
 
 interface WoodFurnitureBannerProps {
     imageSrc: string | StaticImageData;
@@ -43,10 +44,11 @@ export default function WoodFurnitureBanner({
                 </div>
                 <div className="w-full flex items-center justify-center px-2 sm:px-0">
                     <Image
-                        src={imageSrc}
+                        src={typeof imageSrc === "string" ? optimizeCloudinaryUrl(imageSrc, { width: 1000 }) : imageSrc}
                         alt={title || "Wood Furniture"}
                         width={735}
                         height={520}
+                        sizes="(max-width: 768px) 100vw, 735px"
                         className="w-full max-w-183.75 h-auto object-contain"
                     />
                 </div>

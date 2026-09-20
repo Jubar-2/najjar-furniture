@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { optimizeCloudinaryUrl } from "@/lib/images";
 
 export interface ProductPanel {
   imageSrc: string;
@@ -34,7 +35,13 @@ export function Panel({
       </Link> */}
 
       <div className="relative mt-6 h-52 sm:h-64 md:h-80 w-full max-w-[320px]">
-        <Image src={imageSrc} alt={imageAlt} fill className="object-contain object-bottom" />
+        <Image
+          src={optimizeCloudinaryUrl(imageSrc, { width: 640 })}
+          alt={imageAlt}
+          fill
+          sizes="(max-width: 640px) 90vw, 320px"
+          className="object-contain object-bottom"
+        />
       </div>
     </div>
   );

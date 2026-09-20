@@ -20,7 +20,7 @@ export default function PageBanner({
     <section className="relative min-h-65 sm:min-h-72.5 md:min-h-85 w-full bg-[#0f0b08] flex flex-col justify-center">
       {/* Background image & overlay - isolated overflow hidden so Header dropdown is not clipped */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <Image src={imageSrc} alt={imageAlt} fill priority className="object-cover object-center" />
+        <Image src={imageSrc} alt={imageAlt} fill priority sizes="100vw" className="object-cover object-center" />
         <div className="absolute inset-0 bg-[#0f0b08]/75" />
       </div>
 

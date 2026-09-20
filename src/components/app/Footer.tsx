@@ -4,6 +4,7 @@ import Container from "@/components/utils/Container";
 import logo from "@/assets/image/logo/brand-logo.png";
 import Image from "next/image";
 import { DEFAULT_CONTACT, resolveSocialIcon, waLink } from "@/lib/contact";
+import { getWhatsAppUrl } from "@/lib/whatsapp";
 
 const QUICK_LINKS = [
   { label: "Home", href: "/" },
@@ -15,7 +16,7 @@ const QUICK_LINKS = [
 ];
 
 const SOCIAL_LINKS = DEFAULT_CONTACT.socials.map((social) => ({
-  href: social.url,
+  href: social.name?.toLowerCase() === "whatsapp" ? getWhatsAppUrl(social.url) : social.url,
   label: social.name,
   Icon: resolveSocialIcon(social.name),
 }));
@@ -89,6 +90,8 @@ export default function Footer({
                 <Link
                   key={label}
                   href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={label}
                   className="flex size-8 items-center justify-center rounded-full bg-[#f2ead9] text-[#2c160d] transition-colors hover:bg-[#c9a06a]"
                 >
@@ -123,11 +126,15 @@ export default function Footer({
                 <li key={label} className="flex items-start gap-2.5">
                   <Icon className="mt-0.5 size-4 shrink-0 text-[#c9a06a]" />
                   <div className="text-xs sm:text-[12.5px] leading-snug text-[#f2ead9]/70 min-w-0 flex-1 wrap-break-word">
-                    <span className="block text-[10px] uppercase tracking-wide text-[#f2ead9]/50">
+                    <span className="block text-[10px] uppercase tracking-wide text-[#f2ead9]/80">
                       {label}
                     </span>
                     {href ? (
-                      <Link href={href} className="transition-colors hover:text-[#f2ead9] break-all">
+                      <Link
+                        href={href}
+                        {...(href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                        className="transition-colors hover:text-[#f2ead9] break-all"
+                      >
                         {value}
                       </Link>
                     ) : (

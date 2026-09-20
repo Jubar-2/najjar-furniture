@@ -107,8 +107,10 @@ export const DEFAULT_CONTACT: ContactSection = {
   },
 };
 
-/** Turns a phone number like "+880 17XX-XXXXXX" into a wa.me href. */
-export function waLink(value: string): string {
-  const digits = value.replace(/\D/g, "");
-  return digits ? `https://wa.me/${digits}` : "https://wa.me/";
+import { getWhatsAppUrl, normalizeWhatsAppNumber } from "@/lib/whatsapp";
+export { getWhatsAppUrl, normalizeWhatsAppNumber };
+
+/** Turns any phone number, WhatsApp link, or formatted string into an official wa.me click-to-chat URL. */
+export function waLink(value: string, message?: string): string {
+  return getWhatsAppUrl(value, message);
 }
