@@ -121,6 +121,13 @@ export default function PortfolioAdmin() {
 
     return (
         <div className="space-y-6">
+            <div>
+                <h3 className="text-base font-semibold text-neutral-900">Home Page Portfolio Showcase</h3>
+                <p className="text-xs text-neutral-500">
+                    Manage the description paragraph and 4 showcase images displayed in the 2×2 grid on the Home page.
+                </p>
+            </div>
+
             {error && (
                 <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
                     {error}
@@ -128,28 +135,39 @@ export default function PortfolioAdmin() {
             )}
             {success && (
                 <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-sm text-green-700">
-                    Saved.
+                    Saved successfully.
                 </div>
             )}
 
             <label className="block">
-                <span className="mb-1.5 block text-xs font-medium text-neutral-500">Paragraph</span>
+                <span className="mb-1.5 block text-xs font-medium text-neutral-500">Description Paragraph</span>
                 <TiptapEditor content={paragraph} onChange={setParagraph} />
             </label>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {IMAGE_KEYS.map((key, i) => (
-                    <div key={key}>
-                        <p className="mb-2 text-xs font-medium text-neutral-500">Image {i + 1}</p>
-                        <ImageUpload
-                            value={content?.[key]?.url}
-                            aspect="square"
-                            onChange={(file) => {
-                                if (file) setFiles((f) => ({ ...f, [key]: file }));
-                            }}
-                        />
-                    </div>
-                ))}
+            <div>
+                <p className="mb-2 text-xs font-medium text-neutral-500">Showcase Images (4 images for 2×2 grid)</p>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    {IMAGE_KEYS.map((key, i) => (
+                        <div key={key}>
+                            <p className="mb-1.5 text-xs text-neutral-500">Image {i + 1}</p>
+                            <ImageUpload
+                                value={content?.[key]?.url}
+                                aspect="square"
+                                onChange={(file) => {
+                                    if (file) {
+                                        setFiles((f) => ({ ...f, [key]: file }));
+                                    } else {
+                                        setFiles((f) => {
+                                            const next = { ...f };
+                                            delete next[key];
+                                            return next;
+                                        });
+                                    }
+                                }}
+                            />
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending}>

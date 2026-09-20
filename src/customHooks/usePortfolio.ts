@@ -8,12 +8,10 @@ export interface PortfolioImage {
 
 export interface PortfolioContent {
     paragraph?: string;
-    image1: PortfolioImage;
-    image2: PortfolioImage;
-    image3: PortfolioImage;
-    image4: PortfolioImage;
-    image5: PortfolioImage;
-    image6: PortfolioImage;
+    image1?: PortfolioImage;
+    image2?: PortfolioImage;
+    image3?: PortfolioImage;
+    image4?: PortfolioImage;
 }
 
 export const HOME_PORTFOLIO_QUERY_KEY = ["home-portfolio"] as const;

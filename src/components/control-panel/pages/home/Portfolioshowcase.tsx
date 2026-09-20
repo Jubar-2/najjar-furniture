@@ -82,9 +82,10 @@ export default function PortfolioShowcase({
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#602100] tracking-tight">{title}</h2>
             <span className="mt-2 block h-0.75 w-14 bg-[#602100]" />
 
-            <p className="mt-4 sm:mt-5 max-w-md text-sm sm:text-base md:text-lg leading-relaxed text-black/85 font-normal">
-              <span dangerouslySetInnerHTML={{ __html: description }} />
-            </p>
+            <div
+              className="mt-4 sm:mt-5 max-w-md text-sm sm:text-base md:text-lg leading-relaxed text-black/85 font-normal [&_p]:leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
 
             <div className="mt-6 sm:mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
               {stats.map((stat) => (

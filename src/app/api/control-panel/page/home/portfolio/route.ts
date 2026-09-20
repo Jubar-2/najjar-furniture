@@ -11,6 +11,7 @@ import {
   readPortfolioFromFormData,
 } from "@/schemas/portfolio.schema";
 import { ApiResponse } from "@/lib/apiResponse";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 const SECTION_TYPE = "portfolio";
 
@@ -53,6 +54,13 @@ export async function POST(req: NextRequest) {
       type: SECTION_TYPE,
       content,
     });
+
+    try {
+      revalidateTag("home-portfolio", "max");
+      revalidatePath("/");
+    } catch (revalErr) {
+      console.error("Failed to revalidate home portfolio:", revalErr);
+    }
 
     return ApiResponse.success(section, "Portfolio section created", 201);
   } catch (error) {
@@ -127,6 +135,13 @@ export async function PATCH(req: NextRequest) {
     section.content = updatedContent;
     section.markModified("content");
     await section.save();
+
+    try {
+      revalidateTag("home-portfolio", "max");
+      revalidatePath("/");
+    } catch (revalErr) {
+      console.error("Failed to revalidate home portfolio:", revalErr);
+    }
 
     return ApiResponse.success(section);
   } catch (error) {

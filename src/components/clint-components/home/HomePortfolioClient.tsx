@@ -28,12 +28,24 @@ export default function HomePortfolioClient() {
 
     const images: PortfolioCardImage[] = data
         ? [
-              data.image1 && ({ src: data.image1.url, alt: "Portfolio 1", href: "/portfolio", width: "w-[220px]" } as PortfolioCardImage),
-              data.image2 && ({ src: data.image2.url, alt: "Portfolio 2", href: "/portfolio", width: 379 } as PortfolioCardImage),
-              data.image3 && ({ src: data.image3.url, alt: "Portfolio 3", href: "/portfolio", width: 300 } as PortfolioCardImage),
-              data.image4 && ({ src: data.image4.url, alt: "Portfolio 4", href: "/portfolio", width: 300 } as PortfolioCardImage),
-          ].filter((img): img is PortfolioCardImage => Boolean(img))
+              data.image1?.url
+                  ? { src: data.image1.url, alt: "Portfolio 1", href: "/portfolio", width: "w-[220px]" }
+                  : FALLBACK_IMAGES[0],
+              data.image2?.url
+                  ? { src: data.image2.url, alt: "Portfolio 2", href: "/portfolio", width: 379 }
+                  : FALLBACK_IMAGES[1],
+              data.image3?.url
+                  ? { src: data.image3.url, alt: "Portfolio 3", href: "/portfolio", width: 300 }
+                  : FALLBACK_IMAGES[2],
+              data.image4?.url
+                  ? { src: data.image4.url, alt: "Portfolio 4", href: "/portfolio", width: 300 }
+                  : FALLBACK_IMAGES[3],
+          ]
         : FALLBACK_IMAGES;
 
-    return <PortfolioShowcase images={images} />;
+    const paragraph = data?.paragraph && data.paragraph.replace(/<[^>]*>/g, "").trim()
+        ? data.paragraph
+        : undefined;
+
+    return <PortfolioShowcase images={images} description={paragraph} />;
 }
