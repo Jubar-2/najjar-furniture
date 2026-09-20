@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback, memo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
 import { Pause, Play } from "lucide-react";
@@ -19,13 +19,12 @@ interface GalleryProps {
     imagesSub?: GalleryImage[];
 }
 
-export default function Gallery({ isLoading, images = [], imagesSub = [] }: GalleryProps) {
+const Gallery = memo(function Gallery({ isLoading, images = [], imagesSub = [] }: GalleryProps) {
     const swiper1Ref = useRef<SwiperType | null>(null);
     const swiper2Ref = useRef<SwiperType | null>(null);
 
     const [activeIndex, setActiveIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
-    const [progress, setProgress] = useState(0); // 0 -> 100 fill of the active dot
 
     const isSyncingRef = useRef(false);
 
@@ -46,53 +45,37 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
         return Array.from({ length: totalSlides }, (_, i) => subList[i % subList.length]);
     }, [subList, totalSlides]);
 
-    // Drives the fill-progress inside the active dot, synced to autoplay's delay,
-    // and simultaneously advances both sliders when the delay elapses.
+    // Advance sliders simultaneously when autoplay delay elapses.
+    // Progress fill is handled entirely by GPU-accelerated CSS keyframe animation,
+    // eliminating 60fps requestAnimationFrame React re-renders.
     useEffect(() => {
         if (!isPlaying || totalSlides <= 1) return;
 
-        const start = performance.now();
-        let frame: number;
+        const timer = setTimeout(() => {
+            isSyncingRef.current = true;
+            swiper1Ref.current?.slideNext(SLIDE_SPEED);
+            swiper2Ref.current?.slideNext(SLIDE_SPEED);
+            setTimeout(() => {
+                isSyncingRef.current = false;
+            }, SLIDE_SPEED + 50);
+        }, AUTOPLAY_DELAY);
 
-        const tick = (now: number) => {
-            const elapsed = now - start;
-            const pct = Math.min((elapsed / AUTOPLAY_DELAY) * 100, 100);
-            setProgress(pct);
-
-            if (pct < 100) {
-                frame = requestAnimationFrame(tick);
-            } else {
-                // Simultaneously advance both sliders
-                isSyncingRef.current = true;
-                swiper1Ref.current?.slideNext(SLIDE_SPEED);
-                swiper2Ref.current?.slideNext(SLIDE_SPEED);
-                setTimeout(() => {
-                    isSyncingRef.current = false;
-                }, SLIDE_SPEED + 50);
-            }
-        };
-
-        frame = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(frame);
+        return () => clearTimeout(timer);
     }, [activeIndex, isPlaying, totalSlides]);
 
-    if (isLoading) return <section className="gallery bg-[#F98D550F] py-7.5" />;
-    if (images.length === 0 && imagesSub.length === 0) return null;
-
     // Handle manual dot navigation: jumps both sliders in unison
-    const handleDotClick = (index: number) => {
+    const handleDotClick = useCallback((index: number) => {
         isSyncingRef.current = true;
         swiper1Ref.current?.slideToLoop(index, SLIDE_SPEED);
         swiper2Ref.current?.slideToLoop(index, SLIDE_SPEED);
         setActiveIndex(index);
-        setProgress(0);
         setTimeout(() => {
             isSyncingRef.current = false;
         }, SLIDE_SPEED + 50);
-    };
+    }, []);
 
     // User swipe on slider 1 synchronizes slider 2
-    const handleSlide1Change = (realIndex: number) => {
+    const handleSlide1Change = useCallback((realIndex: number) => {
         setActiveIndex(realIndex);
         if (!isSyncingRef.current && swiper2Ref.current && !swiper2Ref.current.destroyed) {
             if (swiper2Ref.current.realIndex !== realIndex) {
@@ -103,10 +86,10 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
                 }, SLIDE_SPEED + 50);
             }
         }
-    };
+    }, []);
 
     // User swipe on slider 2 synchronizes slider 1
-    const handleSlide2Change = (realIndex: number) => {
+    const handleSlide2Change = useCallback((realIndex: number) => {
         setActiveIndex(realIndex);
         if (!isSyncingRef.current && swiper1Ref.current && !swiper1Ref.current.destroyed) {
             if (swiper1Ref.current.realIndex !== realIndex) {
@@ -117,14 +100,14 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
                 }, SLIDE_SPEED + 50);
             }
         }
-    };
+    }, []);
 
-    const toggleAutoplay = () => {
-        setIsPlaying((v) => {
-            if (!v) setProgress(0);
-            return !v;
-        });
-    };
+    const toggleAutoplay = useCallback(() => {
+        setIsPlaying((v) => !v);
+    }, []);
+
+    if (isLoading) return <section className="gallery bg-[#F98D550F] py-7.5" />;
+    if (images.length === 0 && imagesSub.length === 0) return null;
 
     return (
         <section className="gallery bg-[#F98D550F] py-8 sm:py-12">
@@ -149,14 +132,14 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
                     {normalizedMainImages.map((img, index) => (
                         <SwiperSlide key={`${img.publicId || "main"}-${index}`} className="w-[85%]! sm:w-[75%]! md:w-[60%]!">
                             <img
-                                src={optimizeCloudinaryUrl(img.url, { width: 1200 })}
-                                srcSet={getCloudinarySrcSet(img.url, [480, 768, 1024, 1200, 1600])}
-                                sizes="(max-width: 640px) 85vw, (max-width: 768px) 75vw, (max-width: 1024px) 60vw, 1140px"
+                                src={optimizeCloudinaryUrl(img.url, { width: 800 })}
+                                srcSet={getCloudinarySrcSet(img.url, [480, 640, 800, 1024])}
+                                sizes="(max-width: 640px) 85vw, (max-width: 768px) 75vw, (max-width: 1024px) 60vw, 800px"
                                 alt="Gallery piece"
-                                loading={index < 2 ? "eager" : "lazy"}
+                                loading={index === 0 ? "eager" : "lazy"}
                                 decoding="async"
-                                width={1200}
-                                height={640}
+                                width={800}
+                                height={426}
                                 className="block w-full h-auto object-cover"
                             />
                         </SwiperSlide>
@@ -178,14 +161,14 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
                         <SwiperSlide key={`${img.publicId || "sub"}-${index}`} className="w-[55%]! sm:w-[38%]! md:w-[28%]! lg:w-[23%]!">
                             <div className="w-full">
                                 <img
-                                    src={optimizeCloudinaryUrl(img.url, { width: 480 })}
-                                    srcSet={getCloudinarySrcSet(img.url, [240, 360, 480, 640])}
+                                    src={optimizeCloudinaryUrl(img.url, { width: 320 })}
+                                    srcSet={getCloudinarySrcSet(img.url, [240, 320, 480])}
                                     sizes="(max-width: 640px) 55vw, (max-width: 768px) 38vw, (max-width: 1024px) 28vw, 320px"
                                     alt="Gallery thumbnail"
                                     loading="lazy"
                                     decoding="async"
-                                    width={480}
-                                    height={256}
+                                    width={320}
+                                    height={170}
                                     className="block w-full h-auto object-cover"
                                 />
                             </div>
@@ -212,8 +195,13 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
                                     >
                                         {isActive && (
                                             <span
+                                                key={`progress-${activeIndex}`}
                                                 className="absolute inset-y-0 left-0 rounded-full bg-neutral-800"
-                                                style={{ width: `${progress}%` }}
+                                                style={{
+                                                    animation: isPlaying ? `galleryDotProgress ${AUTOPLAY_DELAY}ms linear forwards` : "none",
+                                                    animationPlayState: isPlaying ? "running" : "paused",
+                                                    width: isPlaying ? undefined : "0%",
+                                                }}
                                             />
                                         )}
                                     </span>
@@ -235,9 +223,10 @@ export default function Gallery({ isLoading, images = [], imagesSub = [] }: Gall
                             )}
                         </button>
                     </div>
-
                 </div>
             </div>
         </section>
     );
-}
+});
+
+export default Gallery;

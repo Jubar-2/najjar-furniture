@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import ProductFeatureSplit from "@/components/app/home/Productfeaturesplit";
 import { useGetLayer3 } from "@/customHooks/useHomeLayer3";
 
@@ -15,15 +16,18 @@ const DEFAULT_BACKGROUNDS = [
 export default function HomeLayer3Client() {
     const { data: layer3 } = useGetLayer3();
 
-    if (!layer3) return null;
+    const pairs = useMemo(() => {
+        if (!layer3) return [];
+        const items = [layer3.item1, layer3.item2, layer3.item3, layer3.item4, layer3.item5, layer3.item6];
+        return [
+            [items[0], items[1]],
+            [items[2], items[3]],
+            [items[4], items[5]],
+        ];
+    }, [layer3]);
 
-    const items = [layer3.item1, layer3.item2, layer3.item3, layer3.item4, layer3.item5, layer3.item6];
+    if (!layer3 || pairs.length === 0) return null;
 
-    const pairs = [
-        [items[0], items[1]],
-        [items[2], items[3]],
-        [items[4], items[5]],
-    ];
 
     return (
         <>

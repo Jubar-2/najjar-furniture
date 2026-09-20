@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import Container from "@/components/utils/Container";
@@ -15,7 +16,7 @@ interface TestimonialsSliderProps {
   testimonials: Testimonial[];
 }
 
-export default function TestimonialsSlider({
+function TestimonialsSlider({
   title = "Our Testimonials",
   description = "We take pride in delivering furniture that not only looks beautiful but also brings comfort and lasting value to our clients.",
   testimonials,
@@ -109,3 +110,5 @@ export default function TestimonialsSlider({
     </section>
   );
 }
+
+export default memo(TestimonialsSlider);

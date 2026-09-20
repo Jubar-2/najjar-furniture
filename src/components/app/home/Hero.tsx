@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Image, { StaticImageData } from "next/image";
 import Header from "../Header";
 import Container from "@/components/utils/Container";
@@ -18,7 +19,7 @@ interface HeroProps {
     isLoading?: boolean;
 }
 
-export default function Hero({
+function Hero({
     imageSrc,
     imageAlt = "Handcrafted wooden armchair in a warm living space",
     headline = ["Crafted by Nature.", "Designed for Life."],
@@ -88,3 +89,5 @@ export default function Hero({
         </section>
     );
 }
+
+export default memo(Hero);

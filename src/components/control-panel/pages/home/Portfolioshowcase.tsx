@@ -1,5 +1,6 @@
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
+import { memo } from "react";
 import { Sofa, Users, Hammer, Star, ArrowRight } from "lucide-react";
 import Container from "@/components/utils/Container";
 
@@ -65,7 +66,7 @@ const DEFAULT_STATS: Stat[] = [
   },
 ];
 
-export default function PortfolioShowcase({
+function PortfolioShowcase({
   title = "Our Portfolio",
   description = "Every piece is thoughtfully designed and expertly handcrafted to combine natural beauty, lasting durability,and refined elegance—creating furniture that belongs in your space for generations.",
   stats = DEFAULT_STATS,
@@ -83,7 +84,7 @@ export default function PortfolioShowcase({
             <span className="mt-2 block h-0.75 w-14 bg-[#602100]" />
 
             <div
-              className="mt-4 sm:mt-5 max-w-md text-sm sm:text-base md:text-lg leading-relaxed text-black/85 font-normal [&_p]:leading-relaxed"
+              className="mt-4 sm:mt-5 max-w-md text-sm sm:text-base md:text-lg leading-relaxed text-black/85 font-normal"
               dangerouslySetInnerHTML={{ __html: description }}
             />
 
@@ -122,6 +123,7 @@ export default function PortfolioShowcase({
                   src={image.src}
                   alt={image.alt}
                   fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 35vw, 300px"
                   className="object-cover"
                 />
                 <Link
@@ -139,3 +141,5 @@ export default function PortfolioShowcase({
     </section>
   );
 }
+
+export default memo(PortfolioShowcase);

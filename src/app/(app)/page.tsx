@@ -1,6 +1,4 @@
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import { headers } from "next/headers";
-import axios from "axios";
 
 import HomeHeroClint from "@/components/clint-components/home/HomeHeroClint";
 import HomeLayersClient from "@/components/clint-components/home/HomeLayersClient";
@@ -18,72 +16,31 @@ import { HOME_LAYER3_QUERY_KEY } from "@/customHooks/useHomeLayer3";
 import { HOME_PORTFOLIO_QUERY_KEY } from "@/customHooks/usePortfolio";
 import { HOME_TESTIMONIALS_QUERY_KEY } from "@/customHooks/useTestimonials";
 import { HOME_ABOUT_QUERY_KEY } from "@/customHooks/useHomeAbout";
+import { HOME_GALLERY_QUERY_KEY } from "@/customHooks/getGallery";
 import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
+import { getCachedHomeData } from "@/services/homeData";
 import type { Metadata } from "next";
+
+export const revalidate = 900;
 
 export async function generateMetadata(): Promise<Metadata> {
     return buildMetadata(await getPageMeta("home"));
 }
 
-// Resolve the base URL for server-side fetching from request headers
-async function getBaseUrl() {
-    const hdrs = await headers();
-    const host = hdrs.get("host") ?? "localhost:3000";
-    const proto = hdrs.get("x-forwarded-proto") ?? "http";
-    return `${proto}://${host}`;
-}
-
-async function serverFetch(baseUrl: string, path: string) {
-    try {
-        const { data } = await axios.get(`${baseUrl}${path}`);
-        return data?.data?.content ?? data?.data ?? null;
-    } catch {
-        return null;
-    }
-}
-
 export default async function Home() {
-    const baseUrl = await getBaseUrl();
+    const homeData = await getCachedHomeData();
     const queryClient = new QueryClient();
 
-    // Prefetch all home page sections in parallel on the server
-    await Promise.allSettled([
-        queryClient.prefetchQuery({
-            queryKey: HOME_HERO_QUERY_KEY,
-            queryFn: () => serverFetch(baseUrl, "/api/page/home/hero"),
-        }),
-        queryClient.prefetchQuery({
-            queryKey: HOME_LAYER1_QUERY_KEY,
-            queryFn: () => serverFetch(baseUrl, "/api/page/home/layer1"),
-        }),
-        queryClient.prefetchQuery({
-            queryKey: HOME_LAYER2_QUERY_KEY,
-            queryFn: () => serverFetch(baseUrl, "/api/page/home/layer2"),
-        }),
-        queryClient.prefetchQuery({
-            queryKey: HOME_LAYER3_QUERY_KEY,
-            queryFn: () => serverFetch(baseUrl, "/api/page/home/layer3"),
-        }),
-        queryClient.prefetchQuery({
-            queryKey: HOME_PORTFOLIO_QUERY_KEY,
-            queryFn: () => serverFetch(baseUrl, "/api/page/home/portfolio"),
-        }),
-        queryClient.prefetchQuery({
-            queryKey: HOME_ABOUT_QUERY_KEY,
-            queryFn: () => serverFetch(baseUrl, "/api/page/home/about"),
-        }),
-        queryClient.prefetchQuery({
-            queryKey: HOME_TESTIMONIALS_QUERY_KEY,
-            queryFn: async () => {
-                try {
-                    const { data } = await axios.get(`${baseUrl}/api/testimonials`);
-                    return data?.data ?? [];
-                } catch {
-                    return [];
-                }
-            },
-        }),
-    ]);
+    if (homeData) {
+        queryClient.setQueryData(HOME_HERO_QUERY_KEY, homeData.hero);
+        queryClient.setQueryData(HOME_LAYER1_QUERY_KEY, homeData.layer1);
+        queryClient.setQueryData(HOME_LAYER2_QUERY_KEY, homeData.layer2);
+        queryClient.setQueryData(HOME_LAYER3_QUERY_KEY, homeData.layer3);
+        queryClient.setQueryData(HOME_PORTFOLIO_QUERY_KEY, homeData.portfolio);
+        queryClient.setQueryData(HOME_ABOUT_QUERY_KEY, homeData.about);
+        queryClient.setQueryData(HOME_GALLERY_QUERY_KEY, homeData.gallery);
+        queryClient.setQueryData(HOME_TESTIMONIALS_QUERY_KEY, homeData.testimonials);
+    }
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
@@ -116,3 +73,4 @@ export default async function Home() {
         </HydrationBoundary>
     );
 }
+

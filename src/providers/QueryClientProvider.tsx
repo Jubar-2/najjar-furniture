@@ -5,7 +5,7 @@ import { useState } from "react";
 
 if (typeof window !== "undefined") {
     // Disable window focus listener to prevent background refetches when switching browser tabs
-    focusManager.setEventListener(() => () => {});
+    focusManager.setEventListener(() => () => { });
 }
 
 export default function QueryClientProvider({ children }: { children: React.ReactNode }) {

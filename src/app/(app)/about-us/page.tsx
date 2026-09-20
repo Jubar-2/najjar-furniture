@@ -1,6 +1,4 @@
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import { headers } from "next/headers";
-import axios from "axios";
 
 import PageBanner from "@/components/app/PageBanner";
 import HomeAboutClient from "@/components/clint-components/home/HomeAboutClient";
@@ -9,53 +7,29 @@ import OurValues from "@/components/app/aboutUs/OurValues";
 import Footer from "@/components/app/Footer";
 import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
 import { getPageBanner } from "@/lib/getPageBanner";
+import { getCachedHomeData } from "@/services/homeData";
 import { HOME_ABOUT_QUERY_KEY } from "@/customHooks/useHomeAbout";
 import { HOME_TESTIMONIALS_QUERY_KEY } from "@/customHooks/useTestimonials";
 import type { Metadata } from "next";
+
+export const revalidate = 900;
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata(await getPageMeta("about-us"));
 }
 
-// Resolve the base URL for server-side fetching from request headers
-async function getBaseUrl() {
-  const hdrs = await headers();
-  const host = hdrs.get("host") ?? "localhost:3000";
-  const proto = hdrs.get("x-forwarded-proto") ?? "http";
-  return `${proto}://${host}`;
-}
-
-async function serverFetch(baseUrl: string, path: string) {
-  try {
-    const { data } = await axios.get(`${baseUrl}${path}`);
-    return data?.data?.content ?? data?.data ?? null;
-  } catch {
-    return null;
-  }
-}
-
 export default async function AboutPage() {
-  const baseUrl = await getBaseUrl();
   const queryClient = new QueryClient();
 
-  const [banner] = await Promise.all([
+  const [banner, homeData] = await Promise.all([
     getPageBanner("about-us"),
-    queryClient.prefetchQuery({
-      queryKey: HOME_ABOUT_QUERY_KEY,
-      queryFn: () => serverFetch(baseUrl, "/api/page/home/about"),
-    }),
-    queryClient.prefetchQuery({
-      queryKey: HOME_TESTIMONIALS_QUERY_KEY,
-      queryFn: async () => {
-        try {
-          const { data } = await axios.get(`${baseUrl}/api/testimonials`);
-          return data?.data ?? [];
-        } catch {
-          return [];
-        }
-      },
-    }),
+    getCachedHomeData(),
   ]);
+
+  if (homeData) {
+    queryClient.setQueryData(HOME_ABOUT_QUERY_KEY, homeData.about);
+    queryClient.setQueryData(HOME_TESTIMONIALS_QUERY_KEY, homeData.testimonials);
+  }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

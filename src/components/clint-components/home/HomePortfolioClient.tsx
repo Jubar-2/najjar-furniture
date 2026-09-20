@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import PortfolioShowcase from "@/components/control-panel/pages/home/Portfolioshowcase";
 import portfolio0 from "@/assets/image/product/port0.png";
 import portfolio1 from "@/assets/image/product/port1.png";
@@ -26,26 +27,30 @@ const FALLBACK_IMAGES: PortfolioCardImage[] = [
 export default function HomePortfolioClient() {
     const { data } = useGetPortfolio();
 
-    const images: PortfolioCardImage[] = data
-        ? [
-              data.image1?.url
-                  ? { src: data.image1.url, alt: "Portfolio 1", href: "/portfolio", width: "w-[220px]" }
-                  : FALLBACK_IMAGES[0],
-              data.image2?.url
-                  ? { src: data.image2.url, alt: "Portfolio 2", href: "/portfolio", width: 379 }
-                  : FALLBACK_IMAGES[1],
-              data.image3?.url
-                  ? { src: data.image3.url, alt: "Portfolio 3", href: "/portfolio", width: 300 }
-                  : FALLBACK_IMAGES[2],
-              data.image4?.url
-                  ? { src: data.image4.url, alt: "Portfolio 4", href: "/portfolio", width: 300 }
-                  : FALLBACK_IMAGES[3],
-          ]
-        : FALLBACK_IMAGES;
+    const images: PortfolioCardImage[] = useMemo(() => {
+        if (!data) return FALLBACK_IMAGES;
+        return [
+            data.image1?.url
+                ? { src: data.image1.url, alt: "Portfolio 1", href: "/portfolio", width: "w-[220px]" }
+                : FALLBACK_IMAGES[0],
+            data.image2?.url
+                ? { src: data.image2.url, alt: "Portfolio 2", href: "/portfolio", width: 379 }
+                : FALLBACK_IMAGES[1],
+            data.image3?.url
+                ? { src: data.image3.url, alt: "Portfolio 3", href: "/portfolio", width: 300 }
+                : FALLBACK_IMAGES[2],
+            data.image4?.url
+                ? { src: data.image4.url, alt: "Portfolio 4", href: "/portfolio", width: 300 }
+                : FALLBACK_IMAGES[3],
+        ];
+    }, [data]);
 
-    const paragraph = data?.paragraph && data.paragraph.replace(/<[^>]*>/g, "").trim()
-        ? data.paragraph
-        : undefined;
+    const paragraph = useMemo(() => {
+        return data?.paragraph && data.paragraph.replace(/<[^>]*>/g, "").trim()
+            ? data.paragraph
+            : undefined;
+    }, [data?.paragraph]);
 
     return <PortfolioShowcase images={images} description={paragraph} />;
 }
+

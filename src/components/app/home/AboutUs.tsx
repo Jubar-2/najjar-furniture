@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Image, { StaticImageData } from "next/image";
 import Container from "@/components/utils/Container";
 import { optimizeCloudinaryUrl } from "@/lib/images";
@@ -13,7 +14,7 @@ interface AboutUsProps {
 const DEFAULT_DESCRIPTION =
   "We create distinguished wooden furniture for those who appreciate refined living. Every piece is individually crafted from exceptional materials, balancing timeless form, authentic character, and meticulous craftsmanship—made not simply to furnish a space, but to define it. We create timeless wooden furniture that blends elegant design, lasting quality, and expert craftsmanship. Every piece is thoughtfully crafted to bring warmth, comfort, and character to your space.";
 
-export default function AboutUs({
+function AboutUs({
   imageSrc,
   imageAlt = "Portrait of our craftsman",
   title = "About Us",
@@ -71,3 +72,5 @@ export default function AboutUs({
     </section>
   );
 }
+
+export default memo(AboutUs);

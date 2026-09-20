@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import Container from "@/components/utils/Container";
@@ -15,7 +16,7 @@ interface WoodFurnitureBannerProps {
     ctaHref?: string;
 }
 
-export default function WoodFurnitureBanner({
+function WoodFurnitureBanner({
     imageSrc,
     backgroundColor,
     title = "Wood Furniture",
@@ -44,7 +45,7 @@ export default function WoodFurnitureBanner({
                 </div>
                 <div className="w-full flex items-center justify-center px-2 sm:px-0">
                     <Image
-                        src={typeof imageSrc === "string" ? optimizeCloudinaryUrl(imageSrc, { width: 1000 }) : imageSrc}
+                        src={typeof imageSrc === "string" ? optimizeCloudinaryUrl(imageSrc, { width: 800 }) : imageSrc}
                         alt={title || "Wood Furniture"}
                         width={735}
                         height={520}
@@ -56,3 +57,5 @@ export default function WoodFurnitureBanner({
         </section>
     );
 }
+
+export default memo(WoodFurnitureBanner);

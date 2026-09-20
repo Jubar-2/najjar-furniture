@@ -1,11 +1,24 @@
 "use client";
 
+import { useMemo } from "react";
 import TestimonialsSlider from "@/components/app/home/TestimonialsSlider";
 import profile from "@/assets/image/profile/jon.jpg";
 import { useGetTestimonials } from "@/customHooks/useTestimonials";
 
 export default function HomeTestimonialsClient() {
     const { data, isLoading } = useGetTestimonials();
+
+    const testimonials = useMemo(() => {
+        if (!data) return [];
+        return data.map((t) => ({
+            id: t._id,
+            quote: t.message,
+            rating: 5,
+            name: t.name,
+            location: t.location,
+            avatarSrc: t.avatar || profile,
+        }));
+    }, [data]);
 
     if (isLoading) {
         return (
@@ -22,15 +35,6 @@ export default function HomeTestimonialsClient() {
         return null;
     }
 
-    const testimonials = data.map((t) => ({
-        id: t._id,
-        quote: t.message,
-        rating: 5,
-        name: t.name,
-        location: t.location,
-        avatarSrc: t.avatar || profile,
-    }));
-
     return (
         <TestimonialsSlider
             testimonials={testimonials}
@@ -40,3 +44,4 @@ export default function HomeTestimonialsClient() {
         />
     );
 }
+

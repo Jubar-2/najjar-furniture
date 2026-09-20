@@ -43,8 +43,6 @@ const PageSchema = new Schema<IPage>(
     }
 );
 
-PageSchema.index({ pageName: 1 });
-
 // -------------------- Model Export --------------------
 const PageModel =
     mongoose.models.Page || mongoose.model<IPage>("Page", PageSchema);
