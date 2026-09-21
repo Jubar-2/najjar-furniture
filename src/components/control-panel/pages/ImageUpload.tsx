@@ -6,6 +6,9 @@ import { Upload, X, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
+import { convertImageToWebp } from "@/lib/clientImageToWebp";
+import { Loader2 } from "lucide-react";
+
 interface ImageUploadProps {
   value?: string;                     // controlled image url (optional)
   onChange?: (file: File | null, previewUrl: string | null) => void;
@@ -21,6 +24,7 @@ export default function ImageUpload({
 }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(value ?? null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -28,11 +32,17 @@ export default function ImageUpload({
   }, [value]);
 
   const handleFile = useCallback(
-    (file: File | undefined) => {
+    async (file: File | undefined) => {
       if (!file || !file.type.startsWith("image/")) return;
-      const url = URL.createObjectURL(file);
-      setPreview(url);
-      onChange?.(file, url);
+      setIsConverting(true);
+      try {
+        const webpFile = await convertImageToWebp(file);
+        const url = URL.createObjectURL(webpFile);
+        setPreview(url);
+        onChange?.(webpFile, url);
+      } finally {
+        setIsConverting(false);
+      }
     },
     [onChange]
   );
@@ -100,10 +110,19 @@ export default function ImageUpload({
               : "border-muted-foreground/25 hover:border-muted-foreground/50"
           }`}
         >
-          <ImageIcon className="size-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            Click or drag an image here
-          </p>
+          {isConverting ? (
+            <>
+              <Loader2 className="size-8 text-primary animate-spin" />
+              <p className="text-sm text-muted-foreground">Optimizing to WebP…</p>
+            </>
+          ) : (
+            <>
+              <ImageIcon className="size-8 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Click or drag an image here
+              </p>
+            </>
+          )}
         </Card>
       )}
     </div>

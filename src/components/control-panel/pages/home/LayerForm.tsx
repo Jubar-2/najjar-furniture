@@ -7,6 +7,7 @@ import { Loader2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Field from "./Field";
+import { convertImageToWebp } from "@/lib/clientImageToWebp";
 
 export interface LayerContent {
     heading: string;
@@ -20,6 +21,7 @@ export default function LayerForm({ layer }: { layer: "1" | "2" }) {
 
     const [form, setForm] = useState({ heading: "", paragraph: "" });
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [isConverting, setIsConverting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const hasInitializedRef = useRef(false);
@@ -61,7 +63,10 @@ export default function LayerForm({ layer }: { layer: "1" | "2" }) {
             const formData = new FormData();
             if (form.heading) formData.append("heading", form.heading);
             if (form.paragraph) formData.append("paragraph", form.paragraph);
-            if (imageFile) formData.append("image", imageFile);
+            if (imageFile) {
+                const webpFile = await convertImageToWebp(imageFile);
+                formData.append("image", webpFile);
+            }
 
             const method = content ? "PATCH" : "POST";
 
@@ -143,13 +148,35 @@ export default function LayerForm({ layer }: { layer: "1" | "2" }) {
 
                 <Field label={`Image ${content ? "(optional — leave blank to keep current)" : ""}`}>
                     <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-neutral-300 px-4 py-3 text-sm text-neutral-600 hover:border-neutral-400">
-                        <Upload className="size-4" />
-                        {imageFile ? imageFile.name : "Choose an image"}
+                        {isConverting ? (
+                            <Loader2 className="size-4 animate-spin text-primary" />
+                        ) : (
+                            <Upload className="size-4" />
+                        )}
+                        {isConverting
+                            ? "Converting to WebP…"
+                            : imageFile
+                            ? imageFile.name
+                            : "Choose an image"}
                         <input
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+                            disabled={isConverting}
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) {
+                                    setImageFile(null);
+                                    return;
+                                }
+                                setIsConverting(true);
+                                try {
+                                    const webpFile = await convertImageToWebp(file);
+                                    setImageFile(webpFile);
+                                } finally {
+                                    setIsConverting(false);
+                                }
+                            }}
                         />
                     </label>
                 </Field>

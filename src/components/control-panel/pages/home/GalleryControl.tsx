@@ -19,6 +19,7 @@ import {
   type GalleryImage,
 } from "@/customHooks/getGallery";
 import GalleryRowEditor, { type Row } from "./GalleryRowEditor";
+import { convertImagesToWebp } from "@/lib/clientImageToWebp";
 
 export default function GalleryAdmin() {
   const { data: gallery, isLoading, error: queryError } = useGetGallery();
@@ -38,8 +39,9 @@ export default function GalleryAdmin() {
     setUploadingRow(row);
     setErrorMessage(null);
     try {
+      const convertedFiles = await convertImagesToWebp(files);
       const formData = new FormData();
-      Array.from(files).forEach((file) => formData.append(row, file));
+      convertedFiles.forEach((file) => formData.append(row, file));
 
       await uploadMutation.mutateAsync(formData);
     } catch (err: unknown) {

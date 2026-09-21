@@ -8,6 +8,7 @@ import ImageUpload from "@/components/control-panel/pages/ImageUpload";
 import TiptapEditor from "@/components/control-panel/pages/TiptapEditor";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGetHomeAbout, HOME_ABOUT_QUERY_KEY } from "@/customHooks/useHomeAbout";
+import { convertImageToWebp } from "@/lib/clientImageToWebp";
 
 export default function AboutAdmin() {
     const queryClient = useQueryClient();
@@ -51,7 +52,10 @@ export default function AboutAdmin() {
 
             const formData = new FormData();
             formData.append("paragraph", paragraph);
-            if (imageFile) formData.append("image", imageFile);
+            if (imageFile) {
+                const webpFile = await convertImageToWebp(imageFile);
+                formData.append("image", webpFile);
+            }
 
             // PATCH creates the section on first save and updates it afterward.
             try {

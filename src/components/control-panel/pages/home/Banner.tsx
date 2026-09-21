@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
+import { convertImageToWebp } from "@/lib/clientImageToWebp";
+
 function Banner() {
     const [file, setFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -29,14 +31,17 @@ function Banner() {
         }
     }, [data]);
 
-    function handleClick() {
+    async function handleClick() {
         setError(null);
         setSuccess(false);
 
         const form = new FormData();
         form.append("paragraph", paragraph);
         form.append("heading", heading);
-        if (file) form.append("banner", file);
+        if (file) {
+            const webpFile = await convertImageToWebp(file);
+            form.append("banner", webpFile);
+        }
 
         mutate(form, {
             onSuccess: () => {

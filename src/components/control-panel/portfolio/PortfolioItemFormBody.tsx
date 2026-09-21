@@ -16,6 +16,7 @@ import {
     useUpdatePortfolioItem,
 } from "@/customHooks/usePortfolioItems";
 import type { PortfolioItem } from "@/customHooks/usePortfolioItems";
+import { convertImageToWebp } from "@/lib/clientImageToWebp";
 
 interface SubImageSlotState {
     file: File | null;
@@ -23,18 +24,19 @@ interface SubImageSlotState {
 }
 
 function getInitialSubImages(editing: PortfolioItem | null): SubImageSlotState[] {
-    const arr: SubImageSlotState[] = [
+    const slots: SubImageSlotState[] = [
         { file: null, url: null },
         { file: null, url: null },
         { file: null, url: null },
     ];
-    if (editing?.subImages && Array.isArray(editing.subImages)) {
+
+    if (editing?.subImages && editing.subImages.length > 0) {
         editing.subImages.slice(0, 3).forEach((sub, i) => {
-            const url = typeof sub === "string" ? sub : sub?.url || null;
-            arr[i] = { file: null, url };
+            slots[i] = { file: null, url: typeof sub === "string" ? sub : sub?.url || null };
         });
     }
-    return arr;
+
+    return slots;
 }
 
 export default function PortfolioItemFormBody({
@@ -44,9 +46,6 @@ export default function PortfolioItemFormBody({
     editing: PortfolioItem | null;
     onClose: () => void;
 }) {
-    const createMutation = useCreatePortfolioItem();
-    const updateMutation = useUpdatePortfolioItem();
-
     const [title, setTitle] = useState(editing?.title ?? "");
     const [category, setCategory] = useState(editing?.category ?? "");
     const [description, setDescription] = useState(editing?.description ?? "");
@@ -55,6 +54,9 @@ export default function PortfolioItemFormBody({
         getInitialSubImages(editing)
     );
     const [error, setError] = useState<string | null>(null);
+
+    const createMutation = useCreatePortfolioItem();
+    const updateMutation = useUpdatePortfolioItem();
 
     const handleSubImageChange = (
         index: number,
@@ -78,17 +80,22 @@ export default function PortfolioItemFormBody({
             formData.append("title", title.trim());
             if (category.trim()) formData.append("category", category.trim());
             formData.append("description", description.trim());
-            if (imageFile) formData.append("image", imageFile);
+            if (imageFile) {
+                const webpFile = await convertImageToWebp(imageFile);
+                formData.append("image", webpFile);
+            }
 
             // Append sub-images
             formData.append("hasSubImages", "true");
-            subImageSlots.forEach((slot, i) => {
+            for (let i = 0; i < subImageSlots.length; i++) {
+                const slot = subImageSlots[i];
                 if (slot.file) {
-                    formData.append(`subImage_${i}`, slot.file);
+                    const webpFile = await convertImageToWebp(slot.file);
+                    formData.append(`subImage_${i}`, webpFile);
                 } else if (slot.url && !slot.url.startsWith("blob:")) {
                     formData.append(`subImage_${i}_url`, slot.url);
                 }
-            });
+            }
 
             if (editing) {
                 await updateMutation.mutateAsync({ id: editing._id, formData });

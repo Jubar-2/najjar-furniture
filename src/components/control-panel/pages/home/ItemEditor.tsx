@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Upload, Loader2, Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { convertImageToWebp } from "@/lib/clientImageToWebp";
 
 export type ItemUploadStatus = "idle" | "waiting" | "uploading" | "success" | "error";
 
@@ -31,6 +33,7 @@ export default function ItemEditor({
     onSave?: () => void;
     isSaving?: boolean;
 }) {
+    const [isConverting, setIsConverting] = useState(false);
     return (
         <div className="space-y-3 rounded-xl border border-neutral-200 p-4">
             <div className="flex items-center justify-between">
@@ -74,13 +77,35 @@ export default function ItemEditor({
             </div>
 
             <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-neutral-300 px-3 py-2 text-xs text-neutral-600 hover:border-neutral-400">
-                <Upload className="size-3.5" />
-                {state.imageFile ? state.imageFile.name : "Replace image"}
+                {isConverting ? (
+                    <Loader2 className="size-3.5 animate-spin text-primary" />
+                ) : (
+                    <Upload className="size-3.5" />
+                )}
+                {isConverting
+                    ? "Converting to WebP…"
+                    : state.imageFile
+                    ? state.imageFile.name
+                    : "Replace image"}
                 <input
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => onChange({ imageFile: e.target.files?.[0] ?? null })}
+                    disabled={isConverting}
+                    onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) {
+                            onChange({ imageFile: null });
+                            return;
+                        }
+                        setIsConverting(true);
+                        try {
+                            const webpFile = await convertImageToWebp(file);
+                            onChange({ imageFile: webpFile });
+                        } finally {
+                            setIsConverting(false);
+                        }
+                    }}
                 />
             </label>
 

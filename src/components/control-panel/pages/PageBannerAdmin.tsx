@@ -6,6 +6,7 @@ import { Loader2, Save, Upload, Image as ImageIcon, ChevronRight } from "lucide-
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useGetPageBanner, useUpdatePageBanner } from "@/customHooks/usePageBanner";
+import { convertImageToWebp } from "@/lib/clientImageToWebp";
 
 interface PageBannerAdminProps {
   pageName: string;
@@ -24,6 +25,7 @@ export default function PageBannerAdmin({
   const [title, setTitle] = useState(defaultTitle);
   const [subtitle, setSubtitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{
     type: "success" | "error";
@@ -41,12 +43,18 @@ export default function PageBannerAdmin({
   }, [data]);
 
   // Handle local file preview
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      setFile(selectedFile);
-      const objectUrl = URL.createObjectURL(selectedFile);
-      setPreviewUrl(objectUrl);
+      setIsConverting(true);
+      try {
+        const webpFile = await convertImageToWebp(selectedFile);
+        setFile(webpFile);
+        const objectUrl = URL.createObjectURL(webpFile);
+        setPreviewUrl(objectUrl);
+      } finally {
+        setIsConverting(false);
+      }
     }
   };
 
@@ -59,7 +67,10 @@ export default function PageBannerAdmin({
     const formData = new FormData();
     if (title.trim()) formData.append("title", title.trim());
     if (subtitle.trim()) formData.append("subtitle", subtitle.trim());
-    if (file) formData.append("image", file);
+    if (file) {
+      const webpFile = await convertImageToWebp(file);
+      formData.append("image", webpFile);
+    }
 
     try {
       await mutation.mutateAsync(formData);
@@ -162,11 +173,19 @@ export default function PageBannerAdmin({
           </label>
           <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-white p-6 text-center cursor-pointer hover:border-slate-400 transition-colors">
             <div className="rounded-full bg-slate-100 p-3 text-slate-600">
-              <Upload className="size-5" />
+              {isConverting ? (
+                <Loader2 className="size-5 animate-spin text-primary" />
+              ) : (
+                <Upload className="size-5" />
+              )}
             </div>
             <div>
               <p className="text-sm font-medium text-slate-700">
-                {file ? file.name : "Click to select a banner image"}
+                {isConverting
+                  ? "Optimizing to WebP…"
+                  : file
+                  ? file.name
+                  : "Click to select a banner image"}
               </p>
               <p className="text-xs text-slate-400 mt-0.5">
                 Recommended: 1920×600 (JPG, PNG, WEBP), max 5MB
@@ -176,6 +195,7 @@ export default function PageBannerAdmin({
               type="file"
               accept="image/*"
               className="hidden"
+              disabled={isConverting}
               onChange={handleFileChange}
             />
           </label>

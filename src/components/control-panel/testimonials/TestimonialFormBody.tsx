@@ -16,22 +16,22 @@ import {
     useUpdateTestimonial,
 } from "@/customHooks/useTestimonials";
 import type { Testimonial } from "@/customHooks/useTestimonials";
+import { convertImageToWebp } from "@/lib/clientImageToWebp";
 
-export default function TestimonialFormBody({
-    editing,
-    onClose,
-}: {
+interface Props {
     editing: Testimonial | null;
     onClose: () => void;
-}) {
-    const createMutation = useCreateTestimonial();
-    const updateMutation = useUpdateTestimonial();
+}
 
+export default function TestimonialFormBody({ editing, onClose }: Props) {
     const [name, setName] = useState(editing?.name ?? "");
     const [location, setLocation] = useState(editing?.location ?? "");
     const [message, setMessage] = useState(editing?.message ?? "");
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    const createMutation = useCreateTestimonial();
+    const updateMutation = useUpdateTestimonial();
 
     const handleSubmit = async () => {
         setError(null);
@@ -43,7 +43,10 @@ export default function TestimonialFormBody({
             formData.append("name", name.trim());
             if (location.trim()) formData.append("location", location.trim());
             formData.append("message", message.trim());
-            if (avatarFile) formData.append("avatar", avatarFile);
+            if (avatarFile) {
+                const webpFile = await convertImageToWebp(avatarFile);
+                formData.append("avatar", webpFile);
+            }
 
             if (editing) {
                 await updateMutation.mutateAsync({ id: editing._id, formData });

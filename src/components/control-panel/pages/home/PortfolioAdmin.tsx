@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import ImageUpload from "@/components/control-panel/pages/ImageUpload";
 import TiptapEditor from "@/components/control-panel/pages/TiptapEditor";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { convertImageToWebp } from "@/lib/clientImageToWebp";
 
 interface PortfolioImage {
     url: string;
@@ -88,7 +89,10 @@ export default function PortfolioAdmin() {
             formData.append("paragraph", paragraph);
             for (const key of IMAGE_KEYS) {
                 const file = files[key];
-                if (file) formData.append(key, file);
+                if (file) {
+                    const webpFile = await convertImageToWebp(file);
+                    formData.append(key, webpFile);
+                }
             }
 
             // PATCH creates the section on first save and updates it afterward.

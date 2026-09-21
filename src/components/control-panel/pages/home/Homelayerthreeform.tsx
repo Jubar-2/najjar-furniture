@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ItemEditor, { type ItemFormState, type ItemUploadStatus } from "./ItemEditor";
 import { HOME_LAYER3_QUERY_KEY } from "@/customHooks/useHomeLayer3";
+import { convertImageToWebp } from "@/lib/clientImageToWebp";
 
 interface Item {
     heading: string;
@@ -75,7 +76,8 @@ export default function HomeLayerThreeForm() {
             itemFormData.append("paragraph", state.paragraph.trim());
         }
         if (state.imageFile) {
-            itemFormData.append("image", state.imageFile);
+            const webpFile = await convertImageToWebp(state.imageFile);
+            itemFormData.append("image", webpFile);
         }
 
         try {
@@ -229,7 +231,8 @@ export default function HomeLayerThreeForm() {
                     itemFormData.append("paragraph", state.paragraph.trim());
                 }
                 if (state.imageFile) {
-                    itemFormData.append("image", state.imageFile);
+                    const webpFile = await convertImageToWebp(state.imageFile);
+                    itemFormData.append("image", webpFile);
                 }
 
                 try {
