@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import { uploadOnCloudinary } from "@/services/Cloudinary";
@@ -46,6 +47,17 @@ export async function POST(req: NextRequest) {
             avatar: avatarUrl,
             avatarPublicId,
         });
+
+        try {
+            revalidateTag("testimonials", "max");
+            revalidateTag("home-testimonials", "max");
+            revalidateTag("home-page-data", "max");
+            revalidateTag("page-sections", "max");
+            revalidatePath("/");
+            revalidatePath("/about-us");
+        } catch (revalErr) {
+            console.error("Failed to revalidate testimonials:", revalErr);
+        }
 
         return ApiResponse.success(testimonial, "Testimonial created", 201);
     } catch (error) {

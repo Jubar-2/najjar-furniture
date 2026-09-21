@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import dbConnect from "@/db/dbConnect";
 import { uploadOnCloudinary, deleteUploadedFileOnCloudinary } from "@/services/Cloudinary";
@@ -58,6 +59,17 @@ export async function PATCH(req: NextRequest, { params }: RouteContext<"/api/con
 
     await testimonial.save();
 
+    try {
+      revalidateTag("testimonials", "max");
+      revalidateTag("home-testimonials", "max");
+      revalidateTag("home-page-data", "max");
+      revalidateTag("page-sections", "max");
+      revalidatePath("/");
+      revalidatePath("/about-us");
+    } catch (revalErr) {
+      console.error("Failed to revalidate testimonials:", revalErr);
+    }
+
     return ApiResponse.success(testimonial);
   } catch (error) {
     console.error("PATCH /testimonials/:id failed:", error);
@@ -79,6 +91,17 @@ export async function DELETE(_req: NextRequest, { params }: RouteContext<"/api/c
 
     if (testimonial.avatarPublicId) {
       await deleteUploadedFileOnCloudinary(testimonial.avatarPublicId, "image");
+    }
+
+    try {
+      revalidateTag("testimonials", "max");
+      revalidateTag("home-testimonials", "max");
+      revalidateTag("home-page-data", "max");
+      revalidateTag("page-sections", "max");
+      revalidatePath("/");
+      revalidatePath("/about-us");
+    } catch (revalErr) {
+      console.error("Failed to revalidate testimonials:", revalErr);
     }
 
     return ApiResponse.success({ id });
