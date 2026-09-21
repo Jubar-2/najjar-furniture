@@ -32,9 +32,90 @@ export default function HomeLayerThreeForm() {
     >(
         Object.fromEntries(ITEM_KEYS.map((k) => [k, { status: "idle" }]))
     );
+    const [savingItemKey, setSavingItemKey] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const hasInitializedRef = useRef(false);
+
+    // ── Single Item Save ───────────────────────────────────────────────────
+    async function handleSaveSingleItem(key: (typeof ITEM_KEYS)[number]) {
+        const num = key.replace("item", "");
+        const state = forms[key];
+        const existing = content?.[key as keyof Content];
+        const isCreate = !content;
+        const missingImage = !existing?.image;
+
+        // Validation
+        if (!state.heading.trim() || !state.paragraph.trim()) {
+            setError(`Item ${num}: heading and paragraph are required.`);
+            setSuccess(null);
+            return;
+        }
+
+        if ((isCreate || missingImage) && !state.imageFile) {
+            setError(`Item ${num}: an image is required.`);
+            setSuccess(null);
+            return;
+        }
+
+        setSavingItemKey(key);
+        setError(null);
+        setSuccess(null);
+
+        setItemStatuses((prev) => ({
+            ...prev,
+            [key]: { status: "uploading" },
+        }));
+
+        const itemFormData = new FormData();
+        if (state.heading.trim()) {
+            itemFormData.append("heading", state.heading.trim());
+        }
+        if (state.paragraph.trim()) {
+            itemFormData.append("paragraph", state.paragraph.trim());
+        }
+        if (state.imageFile) {
+            itemFormData.append("image", state.imageFile);
+        }
+
+        try {
+            await axios.post(
+                `/api/control-panel/page/home/layer3/item/${num}`,
+                itemFormData
+            );
+
+            setItemStatuses((prev) => ({
+                ...prev,
+                [key]: { status: "success" },
+            }));
+
+            // Clear local file so it is not re-uploaded
+            setForms((prev) => ({
+                ...prev,
+                [key]: { ...prev[key], imageFile: null },
+            }));
+
+            setSuccess(`Item ${num} saved successfully.`);
+            setError(null);
+
+            queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+            queryClient.invalidateQueries({ queryKey: HOME_LAYER3_QUERY_KEY });
+        } catch (err: unknown) {
+            const message = axios.isAxiosError(err)
+                ? (err.response?.data?.message ?? err.response?.data?.error ?? err.message)
+                : (err instanceof Error ? err.message : "Upload failed.");
+
+            setItemStatuses((prev) => ({
+                ...prev,
+                [key]: { status: "error", message },
+            }));
+
+            setError(`Item ${num} failed to save: ${message}`);
+            setSuccess(null);
+        } finally {
+            setSavingItemKey(null);
+        }
+    }
 
     // ── Fetch ──────────────────────────────────────────────────────────────
     const { data: content, isLoading } = useQuery<Content | null>({
@@ -248,18 +329,25 @@ export default function HomeLayerThreeForm() {
                         status={itemStatuses[key]?.status}
                         statusMessage={itemStatuses[key]?.message}
                         onChange={(patch) => updateItem(key, patch)}
+                        onSave={() => handleSaveSingleItem(key)}
+                        isSaving={savingItemKey === key}
                     />
                 ))}
             </div>
 
-            <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
-                {mutation.isPending
-                    ? "Saving Items…"
-                    : content
-                    ? "Save Changes"
-                    : "Create Layer 3"}
-            </Button>
+            <div className="flex items-center gap-4 pt-2">
+                <Button
+                    type="submit"
+                    disabled={mutation.isPending || !!savingItemKey}
+                    variant="outline"
+                    size="sm"
+                >
+                    {mutation.isPending ? <Loader2 className="size-4 animate-spin mr-1.5" /> : null}
+                    {mutation.isPending
+                        ? "Saving All Items…"
+                        : "Save All Changed Items"}
+                </Button>
+            </div>
         </form>
     );
 }

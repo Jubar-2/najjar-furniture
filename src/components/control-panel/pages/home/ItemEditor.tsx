@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Upload, Loader2, Check, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export type ItemUploadStatus = "idle" | "waiting" | "uploading" | "success" | "error";
 
@@ -18,6 +19,8 @@ export default function ItemEditor({
     onChange,
     status = "idle",
     statusMessage,
+    onSave,
+    isSaving = false,
 }: {
     label: string;
     state: ItemFormState;
@@ -25,6 +28,8 @@ export default function ItemEditor({
     onChange: (patch: Partial<ItemFormState>) => void;
     status?: ItemUploadStatus;
     statusMessage?: string;
+    onSave?: () => void;
+    isSaving?: boolean;
 }) {
     return (
         <div className="space-y-3 rounded-xl border border-neutral-200 p-4">
@@ -93,6 +98,25 @@ export default function ItemEditor({
                 rows={3}
                 className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none"
             />
+
+            {onSave && (
+                <Button
+                    type="button"
+                    onClick={onSave}
+                    disabled={isSaving}
+                    size="sm"
+                    className="w-full mt-1 font-medium"
+                >
+                    {isSaving ? (
+                        <>
+                            <Loader2 className="size-3.5 animate-spin mr-1.5" />
+                            Saving...
+                        </>
+                    ) : (
+                        `Save ${label}`
+                    )}
+                </Button>
+            )}
         </div>
     );
 }
