@@ -41,3 +41,18 @@ export const useUpdateLayer3 = () =>
             return data;
         },
     });
+
+export const useUpdateLayer3Item = (itemNumber: number | string) =>
+    useMutation({
+        mutationFn: async (data: FormData | Record<string, unknown>) => {
+            const num = String(itemNumber).replace(/^item/i, "");
+            const isFormData = data instanceof FormData;
+            const res = await axios.post(
+                `/api/control-panel/page/home/layer3/item/${num}`,
+                data,
+                isFormData ? undefined : { headers: { "Content-Type": "application/json" } }
+            );
+            return res.data;
+        },
+    });
+

@@ -5,7 +5,7 @@ import PortfolioAdmin from "@/components/control-panel/pages/home/PortfolioAdmin
 
 export default function PortfolioPage() {
     return (
-        <main className="grow p-4 md:p-8 overflow-y-auto">
+        <main className="grow min-w-0 p-4 md:p-8 overflow-y-auto">
             <PageTabs
                 tabs={[
                     {

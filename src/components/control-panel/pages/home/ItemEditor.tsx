@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Upload } from "lucide-react";
+import { Upload, Loader2, Check, AlertCircle } from "lucide-react";
+
+export type ItemUploadStatus = "idle" | "waiting" | "uploading" | "success" | "error";
 
 export interface ItemFormState {
     heading: string;
@@ -14,15 +16,45 @@ export default function ItemEditor({
     state,
     existingImage,
     onChange,
+    status = "idle",
+    statusMessage,
 }: {
     label: string;
     state: ItemFormState;
     existingImage?: string;
     onChange: (patch: Partial<ItemFormState>) => void;
+    status?: ItemUploadStatus;
+    statusMessage?: string;
 }) {
     return (
         <div className="space-y-3 rounded-xl border border-neutral-200 p-4">
-            <p className="text-xs font-semibold text-neutral-500">{label}</p>
+            <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-neutral-500">{label}</p>
+                {status !== "idle" && (
+                    <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${status === "uploading"
+                            ? "bg-amber-100 text-amber-800"
+                            : status === "waiting"
+                                ? "bg-neutral-100 text-neutral-600"
+                                : status === "success"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                            }`}
+                        title={statusMessage}
+                    >
+                        {status === "uploading" && <Loader2 className="size-3 animate-spin" />}
+                        {status === "success" && <Check className="size-3" />}
+                        {status === "error" && <AlertCircle className="size-3" />}
+                        {status === "waiting" && "Waiting..."}
+                        {status === "uploading" && "Uploading..."}
+                        {status === "success" && "Saved"}
+                        {status === "error" && "Failed"}
+                    </span>
+                )}
+            </div>
+            {status === "error" && statusMessage && (
+                <p className="text-xs text-red-600">{statusMessage}</p>
+            )}
 
             <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-neutral-50">
                 {state.imageFile ? (
@@ -51,7 +83,7 @@ export default function ItemEditor({
                 value={state.heading}
                 onChange={(e) => onChange({ heading: e.target.value })}
                 placeholder="Heading"
-                className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-400"
+                className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none"
             />
 
             <textarea
@@ -59,7 +91,7 @@ export default function ItemEditor({
                 onChange={(e) => onChange({ paragraph: e.target.value })}
                 placeholder="Paragraph"
                 rows={3}
-                className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-400"
+                className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none"
             />
         </div>
     );

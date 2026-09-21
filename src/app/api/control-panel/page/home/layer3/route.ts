@@ -70,11 +70,40 @@ export async function POST(req: NextRequest) {
 }
 
 // PATCH /api/sections/home-layer-three
-// Updates only the items that were actually sent.
+// Updates only the items and fields that were actually sent.
 export async function PATCH(req: NextRequest) {
   try {
-    const formData = await req.formData();
-    const rawItems = readHomeLayerThreeFromFormData(formData, false);
+    let rawItems: Record<string, unknown> = {};
+
+    const contentType = req.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      const body = await req.json();
+      if (body && typeof body === "object") {
+        for (const key of HOME_LAYER_THREE_KEYS) {
+          const index = key.replace("item", "");
+          if (body[key] && typeof body[key] === "object") {
+            const heading = body[key].heading !== undefined ? String(body[key].heading) : undefined;
+            const paragraph = body[key].paragraph !== undefined ? String(body[key].paragraph) : undefined;
+            if (heading !== undefined || paragraph !== undefined) {
+              rawItems[key] = { heading, paragraph };
+            }
+          } else {
+            const heading = body[`heading${index}`] ?? body[`heading_${index}`];
+            const paragraph = body[`paragraph${index}`] ?? body[`paragraph_${index}`];
+            if (heading !== undefined || paragraph !== undefined) {
+              rawItems[key] = {
+                heading: heading !== undefined ? String(heading) : undefined,
+                paragraph: paragraph !== undefined ? String(paragraph) : undefined,
+              };
+            }
+          }
+        }
+      }
+    } else {
+      const formData = await req.formData();
+      rawItems = readHomeLayerThreeFromFormData(formData, false);
+    }
 
     const parsed = HomeLayerThreeUpdateSchema.safeParse(rawItems);
 
@@ -110,22 +139,33 @@ export async function PATCH(req: NextRequest) {
       const item = parsed.data[key];
       if (!item) continue;
 
-      const imageCloud = await uploadOnCloudinary(item.image);
+      const existingItem = updatedContent[key] || {};
+      const newHeading = item.heading !== undefined ? item.heading : existingItem.heading;
+      const newParagraph = item.paragraph !== undefined ? item.paragraph : existingItem.paragraph;
+      let newImage = existingItem.image;
+      let newImagePublicId = existingItem.imagePublicId;
 
-      if (!imageCloud) {
-        return ApiResponse.error(`Upload failed for ${key}.`, 502);
-      }
+      if (item.image) {
+        const imageCloud = await uploadOnCloudinary(item.image);
 
-      const previousPublicId = updatedContent[key]?.imagePublicId;
-      if (previousPublicId) {
-        await deleteUploadedFileOnCloudinary(previousPublicId, "image");
+        if (!imageCloud) {
+          return ApiResponse.error(`Upload failed for ${key}.`, 502);
+        }
+
+        const previousPublicId = existingItem.imagePublicId;
+        if (previousPublicId) {
+          await deleteUploadedFileOnCloudinary(previousPublicId, "image");
+        }
+
+        newImage = imageCloud.secure_url;
+        newImagePublicId = imageCloud.public_id;
       }
 
       updatedContent[key] = {
-        heading: item.heading,
-        paragraph: item.paragraph,
-        image: imageCloud.secure_url,
-        imagePublicId: imageCloud.public_id,
+        heading: newHeading,
+        paragraph: newParagraph,
+        image: newImage,
+        imagePublicId: newImagePublicId,
       };
     }
 

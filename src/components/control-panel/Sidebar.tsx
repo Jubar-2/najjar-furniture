@@ -40,7 +40,7 @@ export default function Sidebar() {
       {/* --- DESKTOP VIEW: COLLAPSIBLE SIDEBAR --- */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col bg-white sticky top-0 h-screen transition-all duration-300 border-r border-slate-100 shadow-xl",
+          "hidden lg:flex flex-col bg-white sticky top-0 h-screen transition-all duration-300 border-r border-slate-100 shadow-xl shrink-0",
           isCollapsed ? "w-20" : "w-72"
         )}
       >

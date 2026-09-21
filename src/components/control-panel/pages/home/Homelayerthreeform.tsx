@@ -5,7 +5,8 @@ import axios from "axios";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import ItemEditor, { type ItemFormState } from "./ItemEditor";
+import ItemEditor, { type ItemFormState, type ItemUploadStatus } from "./ItemEditor";
+import { HOME_LAYER3_QUERY_KEY } from "@/customHooks/useHomeLayer3";
 
 interface Item {
     heading: string;
@@ -26,8 +27,13 @@ export default function HomeLayerThreeForm() {
     const [forms, setForms] = useState<Record<string, ItemFormState>>(
         Object.fromEntries(ITEM_KEYS.map((k) => [k, { heading: "", paragraph: "", imageFile: null }]))
     );
+    const [itemStatuses, setItemStatuses] = useState<
+        Record<string, { status: ItemUploadStatus; message?: string }>
+    >(
+        Object.fromEntries(ITEM_KEYS.map((k) => [k, { status: "idle" }]))
+    );
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
+    const [success, setSuccess] = useState<string | null>(null);
     const hasInitializedRef = useRef(false);
 
     // ── Fetch ──────────────────────────────────────────────────────────────
@@ -68,90 +74,150 @@ export default function HomeLayerThreeForm() {
 
     function updateItem(key: string, patch: Partial<ItemFormState>) {
         setForms((f) => ({ ...f, [key]: { ...f[key], ...patch } }));
-    }
-
-    // The backend's item schema requires heading + paragraph + image
-    // together whenever an item is included at all — it doesn't support
-    // changing just one field within an item. So if the admin edited an
-    // item's text but didn't pick a new file, we fetch the *existing*
-    // remote image and convert it back into a File, so that item still
-    // validates as "complete" without forcing a re-upload every time.
-    async function resolveImageFile(key: string): Promise<File | null> {
-        const state = forms[key];
-        if (state.imageFile) return state.imageFile;
-
-        const existingUrl = content?.[key as keyof Content]?.image;
-        if (!existingUrl) return null;
-
-        const { data } = await axios.get<Blob>(existingUrl, { responseType: "blob" });
-        return new File([data], `${key}.jpg`, { type: data.type });
+        // Reset status for this item when modified
+        setItemStatuses((s) => ({ ...s, [key]: { status: "idle" } }));
     }
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setError(null);
-        setSuccess(false);
+        setSuccess(null);
         mutation.mutate();
     }
 
-    // ── Save ───────────────────────────────────────────────────────────────
+    // ── Sequential Save ────────────────────────────────────────────────────
     const mutation = useMutation({
         mutationFn: async () => {
-            const formData = new FormData();
             const isCreate = !content;
+            const itemsToSave: (typeof ITEM_KEYS)[number][] = [];
 
+            // Identify which items have changes or need creation
             for (const key of ITEM_KEYS) {
                 const index = key.replace("item", "");
                 const state = forms[key];
                 const existing = content?.[key as keyof Content];
 
-                const headingChanged = state.heading !== (existing?.heading ?? "");
-                const paragraphChanged = state.paragraph !== (existing?.paragraph ?? "");
+                const headingChanged = state.heading.trim() !== (existing?.heading ?? "");
+                const paragraphChanged = state.paragraph.trim() !== (existing?.paragraph ?? "");
                 const imageChanged = !!state.imageFile;
+                const missingImage = !existing?.image;
 
-                // On create, every item must be sent regardless of "changed".
-                // On update, only send items that were actually touched.
-                if (!isCreate && !headingChanged && !paragraphChanged && !imageChanged) {
-                    continue;
+                if (isCreate || missingImage) {
+                    if (!state.heading.trim() || !state.paragraph.trim()) {
+                        throw new Error(`Item ${index}: heading and paragraph are required.`);
+                    }
+                    if (!state.imageFile && missingImage) {
+                        throw new Error(`Item ${index}: an image is required.`);
+                    }
+                    itemsToSave.push(key);
+                } else if (headingChanged || paragraphChanged || imageChanged) {
+                    itemsToSave.push(key);
                 }
-
-                if (!state.heading || !state.paragraph) {
-                    throw new Error(`Item ${index}: heading and paragraph are required.`);
-                }
-
-                const imageFile = await resolveImageFile(key);
-                if (!imageFile) {
-                    throw new Error(`Item ${index}: an image is required.`);
-                }
-
-                formData.append(`heading${index}`, state.heading);
-                formData.append(`paragraph${index}`, state.paragraph);
-                formData.append(`image${index}`, imageFile);
             }
 
-            const method = isCreate ? "POST" : "PATCH";
-            try {
-                const url = "/api/control-panel/page/home/layer3";
-                const { data } = method === "PATCH"
-                    ? await axios.patch(url, formData)
-                    : await axios.post(url, formData);
-                return data;
-            } catch (err: unknown) {
-                const message = axios.isAxiosError(err)
-                    ? (err.response?.data?.message ?? err.response?.data?.error ?? err.message)
-                    : (err instanceof Error ? err.message : "Save failed.");
-                throw new Error(message);
+            if (itemsToSave.length === 0) {
+                throw new Error("No changes to save.");
             }
+
+            // Mark pending items as waiting
+            setItemStatuses((prev) => {
+                const next = { ...prev };
+                for (const k of itemsToSave) {
+                    next[k] = { status: "waiting" };
+                }
+                return next;
+            });
+
+            const savedItems: string[] = [];
+
+            // Upload items sequentially — one request per item
+            for (const key of itemsToSave) {
+                const num = key.replace("item", "");
+                const state = forms[key];
+
+                setItemStatuses((prev) => ({
+                    ...prev,
+                    [key]: { status: "uploading" },
+                }));
+
+                const itemFormData = new FormData();
+                if (state.heading.trim()) {
+                    itemFormData.append("heading", state.heading.trim());
+                }
+                if (state.paragraph.trim()) {
+                    itemFormData.append("paragraph", state.paragraph.trim());
+                }
+                if (state.imageFile) {
+                    itemFormData.append("image", state.imageFile);
+                }
+
+                try {
+                    await axios.post(
+                        `/api/control-panel/page/home/layer3/item/${num}`,
+                        itemFormData
+                    );
+
+                    savedItems.push(`Item ${num}`);
+
+                    // Mark this item as saved
+                    setItemStatuses((prev) => ({
+                        ...prev,
+                        [key]: { status: "success" },
+                    }));
+
+                    // Clear local file so it is not re-uploaded on retry
+                    setForms((prev) => ({
+                        ...prev,
+                        [key]: { ...prev[key], imageFile: null },
+                    }));
+                } catch (err: unknown) {
+                    const message = axios.isAxiosError(err)
+                        ? (err.response?.data?.message ?? err.response?.data?.error ?? err.message)
+                        : (err instanceof Error ? err.message : "Upload failed.");
+
+                    // Mark this item as error
+                    setItemStatuses((prev) => ({
+                        ...prev,
+                        [key]: { status: "error", message },
+                    }));
+
+                    // Revert remaining unstarted items to idle
+                    const remaining = itemsToSave.slice(itemsToSave.indexOf(key) + 1);
+                    setItemStatuses((prev) => {
+                        const next = { ...prev };
+                        for (const r of remaining) {
+                            next[r] = { status: "idle" };
+                        }
+                        return next;
+                    });
+
+                    const savedSummary =
+                        savedItems.length > 0
+                            ? ` (${savedItems.join(", ")} saved successfully).`
+                            : "";
+
+                    throw new Error(
+                        `Item ${num} failed to save: ${message}.${savedSummary} Remaining items were not uploaded.`
+                    );
+                }
+            }
+
+            return savedItems;
         },
-        onSuccess: () => {
-            setSuccess(true);
+        onSuccess: (savedItems) => {
+            setSuccess(
+                savedItems.length === 1
+                    ? `${savedItems[0]} saved successfully.`
+                    : `All ${savedItems.length} items saved successfully.`
+            );
             setError(null);
             hasInitializedRef.current = false;
             queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+            queryClient.invalidateQueries({ queryKey: HOME_LAYER3_QUERY_KEY });
         },
         onError: (err) => {
             setError(err instanceof Error ? err.message : "Save failed.");
-            setSuccess(false);
+            setSuccess(null);
         },
     });
 
@@ -168,7 +234,7 @@ export default function HomeLayerThreeForm() {
             )}
             {success && (
                 <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-sm text-green-700">
-                    Saved.
+                    {success}
                 </div>
             )}
 
@@ -179,6 +245,8 @@ export default function HomeLayerThreeForm() {
                         label={`Item ${i + 1}`}
                         state={forms[key]}
                         existingImage={content?.[key]?.image}
+                        status={itemStatuses[key]?.status}
+                        statusMessage={itemStatuses[key]?.message}
                         onChange={(patch) => updateItem(key, patch)}
                     />
                 ))}
@@ -186,7 +254,11 @@ export default function HomeLayerThreeForm() {
 
             <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
-                {content ? "Save Changes" : "Create Layer 3"}
+                {mutation.isPending
+                    ? "Saving Items…"
+                    : content
+                    ? "Save Changes"
+                    : "Create Layer 3"}
             </Button>
         </form>
     );
