@@ -110,9 +110,9 @@ export default function AdminLoginPage() {
                             priority
                             className="object-cover object-center opacity-25 scale-105 transition-transform duration-1000 ease-out"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C10] via-[#0B0C10]/80 to-transparent" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0B0C10]/60 to-[#0B0C10]" />
-                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-amber-600/10 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-linear-to-t from-[#0B0C10] via-[#0B0C10]/80 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-r from-transparent via-[#0B0C10]/60 to-[#0B0C10]" />
+                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,var(--tw-gradient-stops))] from-amber-600/10 via-transparent to-transparent pointer-events-none" />
                     </div>
 
                     {/* Top Heritage Badge */}
@@ -156,17 +156,17 @@ export default function AdminLoginPage() {
 
                         {/* Security Feature Pillars */}
                         <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/10">
-                            <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 backdrop-blur-xs">
+                            <div className="p-3.5 rounded-xl bg-white/3 border border-white/5 backdrop-blur-xs">
                                 <Fingerprint className="size-4 text-amber-400 mb-2" />
                                 <div className="text-xs font-bold text-white">256-Bit TLS</div>
                                 <div className="text-[10px] text-neutral-400 mt-0.5">End-to-end encrypted</div>
                             </div>
-                            <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 backdrop-blur-xs">
+                            <div className="p-3.5 rounded-xl bg-white/3 border border-white/5 backdrop-blur-xs">
                                 <ShieldCheck className="size-4 text-emerald-400 mb-2" />
                                 <div className="text-xs font-bold text-white">Role Access</div>
                                 <div className="text-[10px] text-neutral-400 mt-0.5">Super admin security</div>
                             </div>
-                            <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 backdrop-blur-xs">
+                            <div className="p-3.5 rounded-xl bg-white/3 border border-white/5 backdrop-blur-xs">
                                 <Cpu className="size-4 text-amber-300 mb-2" />
                                 <div className="text-xs font-bold text-white">Cloud Sync</div>
                                 <div className="text-[10px] text-neutral-400 mt-0.5">Live store automation</div>
@@ -283,11 +283,10 @@ export default function AdminLoginPage() {
                                             autoComplete="email"
                                             disabled={isLoading || authSuccess}
                                             placeholder="admin@example.com"
-                                            className={`h-12 pl-10 pr-4 rounded-xl bg-white/[0.04] border text-xs text-white placeholder:text-neutral-500 transition-all focus:bg-white/[0.07] ${
-                                                errors.email
-                                                    ? "border-red-500 focus-visible:ring-red-500/20"
-                                                    : "border-white/10 focus:border-amber-500 focus-visible:ring-amber-500/20"
-                                            }`}
+                                            className={`h-12 pl-10 pr-4 rounded-xl bg-white/4 border text-xs text-white transition-all ${errors.email
+                                                ? "border-red-500 focus-visible:ring-red-500/20"
+                                                : "focus:border-amber-500 focus-visible:ring-amber-500/20"
+                                                }`}
                                         />
                                     </div>
                                     {errors.email && (
@@ -316,11 +315,10 @@ export default function AdminLoginPage() {
                                             autoComplete="current-password"
                                             disabled={isLoading || authSuccess}
                                             placeholder="••••••••••••"
-                                            className={`h-12 pl-10 pr-10 rounded-xl bg-white/[0.04] border text-xs text-white placeholder:text-neutral-500 transition-all focus:bg-white/[0.07] ${
-                                                errors.password
-                                                    ? "border-red-500 focus-visible:ring-red-500/20"
-                                                    : "border-white/10 focus:border-amber-500 focus-visible:ring-amber-500/20"
-                                            }`}
+                                            className={`h-12 pl-10 pr-10 rounded-xl border text-xs placeholder:text-neutral-500 transition-all focus:bg-white/[0.07] ${errors.password
+                                                ? "border-red-500 focus-visible:ring-red-500/20"
+                                                : "focus:border-amber-500 focus-visible:ring-amber-500/20"
+                                                }`}
                                         />
                                         <button
                                             type="button"
@@ -356,7 +354,7 @@ export default function AdminLoginPage() {
                                 <Button
                                     type="submit"
                                     disabled={isLoading || authSuccess}
-                                    className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:from-amber-500 hover:to-amber-700 text-white font-bold text-sm tracking-wide shadow-lg shadow-amber-950/50 transition-all hover:shadow-amber-600/25 active:scale-[0.99] cursor-pointer group"
+                                    className="w-full h-12 rounded-xl bg-linear-to-r from-amber-600 via-amber-700 to-amber-800 hover:from-amber-500 hover:to-amber-700 text-white font-bold text-sm tracking-wide shadow-lg shadow-amber-950/50 transition-all hover:shadow-amber-600/25 active:scale-[0.99] cursor-pointer group"
                                 >
                                     {isLoading ? (
                                         <div className="flex items-center gap-2">
