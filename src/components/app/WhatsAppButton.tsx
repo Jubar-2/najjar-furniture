@@ -10,7 +10,7 @@ interface WhatsAppButtonProps {
 }
 
 export default function WhatsAppButton({
-    phoneNumber = "8801703165333",
+    phoneNumber = "8801XXXXXXXXX",
     message,
     label = "Chat on WhatsApp",
     className = "",
