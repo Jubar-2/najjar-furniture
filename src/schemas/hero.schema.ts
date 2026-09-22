@@ -13,6 +13,10 @@ export const HeroSchema = z.object({
             (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
             "Only .jpg, .jpeg, .png, and .webp formats are accepted."
         ),
+    whatsAppNumber: z.string().optional(),
+    ctaLabel: z.string().optional(),
+    showWhatsApp: z.boolean().optional(),
+    showSocials: z.boolean().optional(),
 });
 
 export type Hero = z.infer<typeof HeroSchema>;
@@ -27,6 +31,10 @@ export const HeroUpdatedSchema = z.object({
             (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
             "Only .jpg, .jpeg, .png, and .webp formats are accepted."
         ).optional(),
+    whatsAppNumber: z.string().optional(),
+    ctaLabel: z.string().optional(),
+    showWhatsApp: z.boolean().optional(),
+    showSocials: z.boolean().optional(),
 });
 
 export type HeroUpdated = z.infer<typeof HeroUpdatedSchema>;

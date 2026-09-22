@@ -57,6 +57,14 @@ export function resolveTopicIcon(key?: string): LucideIcon {
   return icon ?? CircleHelp;
 }
 
+export {
+  SocialIcon,
+  PLATFORM_CONFIGS,
+  SOCIAL_PLATFORM_LIST,
+  getSocialIconComponent,
+  normalizePlatformKey,
+} from "@/components/ui/SocialIcons";
+
 export function resolveSocialIcon(name?: string): LucideIcon {
   const icon = name ? SOCIAL_ICONS[name.toLowerCase()] : undefined;
   return icon ?? Globe;

@@ -40,8 +40,8 @@ function PortfolioGridSkeleton({ viewMode }: { viewMode: "large" | "grid" }) {
     return (
         <div
             className={`grid ${isLarge
-                    ? "grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10"
-                    : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                ? "grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10"
+                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                 }`}
         >
             {Array.from({ length: isLarge ? 4 : 6 }).map((_, i) => (
@@ -135,8 +135,8 @@ export default function PortfolioGrid({
                                 type="button"
                                 onClick={() => setSelectedCategory(category)}
                                 className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer ${selectedCategory === category
-                                        ? "bg-[#602100] text-white shadow-sm shadow-amber-950/20"
-                                        : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                                    ? "bg-[#602100] text-white shadow-sm shadow-amber-950/20"
+                                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                                     }`}
                             >
                                 {category}
@@ -150,8 +150,8 @@ export default function PortfolioGrid({
                             type="button"
                             onClick={() => setViewMode("large")}
                             className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${viewMode === "large"
-                                    ? "bg-[#602100] text-white shadow-xs"
-                                    : "text-neutral-600 hover:text-neutral-900"
+                                ? "bg-[#602100] text-white shadow-xs"
+                                : "text-neutral-600 hover:text-neutral-900"
                                 }`}
                             title="Large showcase mode"
                         >
@@ -162,8 +162,8 @@ export default function PortfolioGrid({
                             type="button"
                             onClick={() => setViewMode("grid")}
                             className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${viewMode === "grid"
-                                    ? "bg-[#602100] text-white shadow-xs"
-                                    : "text-neutral-600 hover:text-neutral-900"
+                                ? "bg-[#602100] text-white shadow-xs"
+                                : "text-neutral-600 hover:text-neutral-900"
                                 }`}
                             title="Standard grid mode"
                         >
@@ -179,8 +179,8 @@ export default function PortfolioGrid({
                 ) : filteredItems.length > 0 ? (
                     <div
                         className={`grid ${viewMode === "large"
-                                ? "grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10"
-                                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                            ? "grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10"
+                            : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                             }`}
                     >
                         {filteredItems.map((item) => (
@@ -243,8 +243,8 @@ export default function PortfolioGrid({
                                         onClick={() => setModalActiveImage(selected.image)}
                                         aria-label="View main photo"
                                         className={`relative aspect-4/3 overflow-hidden rounded-lg sm:rounded-xl border-2 transition-all cursor-pointer ${(modalActiveImage || selected.image) === selected.image
-                                                ? "border-[#602100] ring-2 ring-[#602100]/30 scale-[1.02] shadow-xs"
-                                                : "border-neutral-200/80 opacity-70 hover:opacity-100 hover:scale-[1.02]"
+                                            ? "border-[#602100] ring-2 ring-[#602100]/30 scale-[1.02] shadow-xs"
+                                            : "border-neutral-200/80 opacity-70 hover:opacity-100 hover:scale-[1.02]"
                                             }`}
                                     >
                                         <Image
@@ -275,8 +275,8 @@ export default function PortfolioGrid({
                                                     onClick={() => setModalActiveImage(src)}
                                                     aria-label={`View detail photo ${idx + 1}`}
                                                     className={`relative aspect-4/3 overflow-hidden rounded-lg sm:rounded-xl border-2 transition-all cursor-pointer ${isActive
-                                                            ? "border-[#602100] ring-2 ring-[#602100]/30 scale-[1.02] shadow-xs"
-                                                            : "border-neutral-200/80 opacity-70 hover:opacity-100 hover:scale-[1.02]"
+                                                        ? "border-[#602100] ring-2 ring-[#602100]/30 scale-[1.02] shadow-xs"
+                                                        : "border-neutral-200/80 opacity-70 hover:opacity-100 hover:scale-[1.02]"
                                                         }`}
                                                 >
                                                     <Image

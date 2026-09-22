@@ -1,14 +1,20 @@
 import Link from "next/link";
 import Container from "@/components/utils/Container";
-import { resolveSocialIcon } from "@/lib/contact";
+import { SocialIcon, PLATFORM_CONFIGS, normalizePlatformKey } from "@/components/ui/SocialIcons";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 import type { SocialLink } from "@/schemas/contact.schema";
 
 function formatName(name: string): string {
+  const key = normalizePlatformKey(name);
+  if (PLATFORM_CONFIGS[key] && key !== "website") {
+    return PLATFORM_CONFIGS[key].label;
+  }
   return name ? name.charAt(0).toUpperCase() + name.slice(1) : "Social";
 }
 
 export default function ConnectChannels({ socials }: { socials: SocialLink[] }) {
+  const validSocials = socials?.filter((s) => s.name && s.url) || [];
+
   return (
     <section className="bg-white py-10 sm:py-16">
       <Container>
@@ -25,9 +31,8 @@ export default function ConnectChannels({ socials }: { socials: SocialLink[] }) 
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {socials && socials.length > 0 ? (
-            socials.map((channel) => {
-              const Icon = resolveSocialIcon(channel.name);
+          {validSocials.length > 0 ? (
+            validSocials.map((channel) => {
               const href =
                 channel.name?.toLowerCase() === "whatsapp"
                   ? getWhatsAppUrl(channel.url)
@@ -38,23 +43,25 @@ export default function ConnectChannels({ socials }: { socials: SocialLink[] }) 
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col gap-3 rounded-2xl border border-[#e5ded3] bg-[#fdf6ee] p-5 transition-colors hover:border-[#c9a06a]"
+                  className="group flex flex-col gap-3 rounded-2xl border border-[#e5ded3] bg-[#fdf6ee] p-5 transition-all hover:border-[#c9a06a] hover:shadow-md"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="flex size-8 items-center justify-center rounded-full bg-[#6b3f22] text-[#f2ead9]">
-                      <Icon className="size-4" />
+                    <span className="flex size-9 items-center justify-center rounded-full bg-[#6b3f22] text-[#f2ead9] transition-all group-hover:scale-110 group-hover:bg-[#c9a06a] group-hover:text-[#2c160d]">
+                      <SocialIcon platform={channel.name} size={16} />
                     </span>
                     <span className="text-sm font-semibold text-[#2b1810]">
                       {formatName(channel.name)}
                     </span>
                   </div>
 
-                  <p className="truncate text-[11.5px] text-[#3a2c22]/75">{channel.url}</p>
+                  <p className="truncate text-[11.5px] text-[#3a2c22]/75 font-mono">{channel.url}</p>
                 </Link>
               );
             })
           ) : (
-            <p className="text-[13px] text-[#3a2c22]/70">Social channels are being set up.</p>
+            <p className="text-[13px] text-[#3a2c22]/70 col-span-full text-center py-4">
+              Social channels are being set up.
+            </p>
           )}
         </div>
       </Container>

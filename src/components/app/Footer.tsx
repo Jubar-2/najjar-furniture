@@ -1,10 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import Container from "@/components/utils/Container";
 import logo from "@/assets/image/logo/brand-logo.png";
 import Image from "next/image";
-import { DEFAULT_CONTACT, resolveSocialIcon, waLink } from "@/lib/contact";
+import { DEFAULT_CONTACT, waLink } from "@/lib/contact";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
+import { useGetContact } from "@/customHooks/useContact";
+import { SocialIcon } from "@/components/ui/SocialIcons";
+import type { ContactSection } from "@/schemas/contact.schema";
 
 const QUICK_LINKS = [
   { label: "Home", href: "/" },
@@ -15,49 +20,54 @@ const QUICK_LINKS = [
   { label: "Terms & Conditions", href: "/terms-conditions" },
 ];
 
-const SOCIAL_LINKS = DEFAULT_CONTACT.socials.map((social) => ({
-  href: social.name?.toLowerCase() === "whatsapp" ? getWhatsAppUrl(social.url) : social.url,
-  label: social.name,
-  Icon: resolveSocialIcon(social.name),
-}));
-
-const primaryEmail = DEFAULT_CONTACT.emails[0]?.value ?? "";
-const primaryPhone = DEFAULT_CONTACT.phones[0]?.value ?? "";
-const primaryWhatsapp = DEFAULT_CONTACT.whatsapps[0]?.value ?? "";
-
-const phoneDigits = primaryPhone.replace(/\D/g, "");
-
-const CONTACT_INFO = [
-  { Icon: MapPin, label: "Address", value: DEFAULT_CONTACT.address, href: undefined as string | undefined },
-  {
-    Icon: Phone,
-    label: "Phone",
-    value: primaryPhone,
-    href: phoneDigits ? `tel:+${phoneDigits}` : undefined,
-  },
-  {
-    Icon: Mail,
-    label: "Email",
-    value: primaryEmail,
-    href: `mailto:${primaryEmail}`,
-  },
-  {
-    Icon: Clock,
-    label: "Showroom Hours",
-    value: DEFAULT_CONTACT.showroomHours,
-    href: waLink(primaryWhatsapp),
-  },
-];
-
 interface FooterProps {
   brandName?: string;
   tagline?: string[];
+  initialContact?: ContactSection;
 }
 
 export default function Footer({
   brandName = "Najjar Furniture",
   tagline = ["Timeless Furniture,", "Thoughtfully Crafted."],
+  initialContact,
 }: FooterProps) {
+  const { data: remoteContact } = useGetContact();
+  const contact = remoteContact || initialContact || DEFAULT_CONTACT;
+
+  const socials = contact.socials && contact.socials.length > 0
+    ? contact.socials
+    : DEFAULT_CONTACT.socials;
+
+  const primaryEmail = contact.emails?.[0]?.value || DEFAULT_CONTACT.emails[0]?.value || "";
+  const primaryPhone = contact.phones?.[0]?.value || DEFAULT_CONTACT.phones[0]?.value || "";
+  const primaryWhatsapp = contact.whatsapps?.[0]?.value || DEFAULT_CONTACT.whatsapps[0]?.value || "";
+  const address = contact.address || DEFAULT_CONTACT.address;
+  const showroomHours = contact.showroomHours || DEFAULT_CONTACT.showroomHours;
+
+  const phoneDigits = primaryPhone.replace(/\D/g, "");
+
+  const contactItems = [
+    { Icon: MapPin, label: "Address", value: address, href: undefined as string | undefined },
+    {
+      Icon: Phone,
+      label: "Phone",
+      value: primaryPhone,
+      href: phoneDigits ? `tel:+${phoneDigits}` : undefined,
+    },
+    {
+      Icon: Mail,
+      label: "Email",
+      value: primaryEmail,
+      href: primaryEmail ? `mailto:${primaryEmail}` : undefined,
+    },
+    {
+      Icon: Clock,
+      label: "Showroom Hours",
+      value: showroomHours,
+      href: primaryWhatsapp ? waLink(primaryWhatsapp) : undefined,
+    },
+  ];
+
   return (
     <footer className="bg-[#2c160d] text-[#f2ead9]">
       <Container>
@@ -85,19 +95,33 @@ export default function Footer({
               ))}
             </p>
 
-            <div className="mt-6 flex items-center gap-3">
-              {SOCIAL_LINKS.map(({ Icon, href, label }) => (
-                <Link
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="flex size-8 items-center justify-center rounded-full bg-[#f2ead9] text-[#2c160d] transition-colors hover:bg-[#c9a06a]"
-                >
-                  <Icon className="size-4" />
-                </Link>
-              ))}
+            {/* Dynamic Social Media Channels */}
+            <div className="mt-6 flex flex-wrap items-center gap-2.5">
+              {socials
+                .filter((s) => s.name && s.url)
+                .map((social) => {
+                  const href =
+                    social.name?.toLowerCase() === "whatsapp"
+                      ? getWhatsAppUrl(social.url)
+                      : social.url;
+                  return (
+                    <Link
+                      key={social.name + social.url}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.name}
+                      title={social.name}
+                      className="group flex size-8 items-center justify-center rounded-full bg-[#f2ead9] text-[#2c160d] transition-all hover:bg-[#c9a06a] hover:scale-110 shadow-2xs"
+                    >
+                      <SocialIcon
+                        platform={social.name}
+                        size={15}
+                        className="transition-transform group-hover:scale-105"
+                      />
+                    </Link>
+                  );
+                })}
             </div>
           </div>
 
@@ -122,7 +146,7 @@ export default function Footer({
           <div>
             <h3 className="text-sm font-semibold text-[#f2ead9]">Contact Us</h3>
             <ul className="mt-3.5 space-y-3">
-              {CONTACT_INFO.map(({ Icon, label, value, href }) => (
+              {contactItems.map(({ Icon, label, value, href }) => (
                 <li key={label} className="flex items-start gap-2.5">
                   <Icon className="mt-0.5 size-4 shrink-0 text-[#c9a06a]" />
                   <div className="text-xs sm:text-[12.5px] leading-snug text-[#f2ead9]/70 min-w-0 flex-1 wrap-break-word">

@@ -6,6 +6,10 @@ export interface HeroContent {
     paragraph: string;
     banner: string;
     bannerPublicId?: string;
+    whatsAppNumber?: string;
+    ctaLabel?: string;
+    showWhatsApp?: boolean;
+    showSocials?: boolean;
 }
 
 export const HOME_HERO_QUERY_KEY = ["home-hero"] as const;

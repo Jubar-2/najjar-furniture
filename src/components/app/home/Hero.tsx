@@ -1,11 +1,15 @@
 import { memo } from "react";
 import Image, { StaticImageData } from "next/image";
+import Link from "next/link";
 import Header from "../Header";
 import Container from "@/components/utils/Container";
 import { HeroTextSkeleton } from "./HeroTextSkeleton";
 import WhatsAppButton from "@/components/app/WhatsAppButton";
 import { DEFAULT_CONTACT } from "@/lib/contact";
 import { optimizeCloudinaryUrl } from "@/lib/images";
+import { SocialIcon } from "@/components/ui/SocialIcons";
+import { getWhatsAppUrl } from "@/lib/whatsapp";
+import type { SocialLink } from "@/schemas/contact.schema";
 
 interface HeroProps {
     imageSrc?: string | StaticImageData;
@@ -16,6 +20,9 @@ interface HeroProps {
     ctaLabel?: string;
     ctaHref?: string;
     whatsAppNumber?: string;
+    showWhatsApp?: boolean;
+    showSocials?: boolean;
+    socials?: SocialLink[];
     isLoading?: boolean;
 }
 
@@ -25,10 +32,14 @@ function Hero({
     headline = ["Crafted by Nature.", "Designed for Life."],
     description = "Every piece is thoughtfully designed and expertly handcrafted to combine natural beauty, lasting durability, and refined elegance—creating furniture that belongs in your space for generations",
     ctaLabel = "Chat on WhatsApp",
-    ctaHref,
     whatsAppNumber = DEFAULT_CONTACT.whatsapps[0]?.value || "8801XXXXXXXXX",
+    showWhatsApp = true,
+    showSocials = true,
+    socials = DEFAULT_CONTACT.socials,
     isLoading = false,
 }: HeroProps) {
+    const validSocials = socials?.filter((s) => s.name && s.url) || [];
+
     return (
         <section className="relative min-h-145 sm:min-h-160 md:min-h-180 w-full bg-[#0f0b08] flex flex-col justify-center">
             {/* Background image & gradient overlay — isolated in an overflow-hidden wrapper so Header dropdown is never clipped */}
@@ -75,12 +86,16 @@ function Hero({
                                     {description}
                                 </p>
 
-                                <div className="mt-6 sm:mt-8">
-                                    <WhatsAppButton
-                                        phoneNumber={whatsAppNumber}
-                                        label={ctaLabel}
-                                    />
-                                </div>
+                                {(showWhatsApp || (showSocials && validSocials.length > 0)) && (
+                                    <div className="mt-6 sm:mt-8 flex flex-wrap items-center gap-4 sm:gap-6">
+                                        {showWhatsApp && (
+                                            <WhatsAppButton
+                                                phoneNumber={whatsAppNumber}
+                                                label={ctaLabel}
+                                            />
+                                        )}
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>

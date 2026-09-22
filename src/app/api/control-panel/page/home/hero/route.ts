@@ -6,17 +6,25 @@ import PageModel from "@/models/page.model";
 import { HeroSchema, HeroUpdatedSchema } from "@/schemas/hero.schema";
 import { deleteUploadedFileOnCloudinary, uploadOnCloudinary } from "@/services/Cloudinary";
 import { ApiResponse } from "@/lib/apiResponse";
+import { revalidatePath, revalidateTag } from "next/cache";
 
-// POST /api/pages/:pageId/sections/banner
+// POST /api/control-panel/page/home/hero
 // Creates a new banner section for a page. Body must match HeroSchema.
 export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
 
+        const rawShowWhatsApp = formData.get("showWhatsApp");
+        const rawShowSocials = formData.get("showSocials");
+
         const parsed = HeroSchema.safeParse({
             banner: formData.get("banner"),
             heading: formData.get("heading"),
             paragraph: formData.get("paragraph"),
+            whatsAppNumber: formData.get("whatsAppNumber")?.toString(),
+            ctaLabel: formData.get("ctaLabel")?.toString(),
+            showWhatsApp: rawShowWhatsApp !== null ? rawShowWhatsApp === "true" || rawShowWhatsApp === "1" : undefined,
+            showSocials: rawShowSocials !== null ? rawShowSocials === "true" || rawShowSocials === "1" : undefined,
         });
 
         if (!parsed.success) {
@@ -29,18 +37,17 @@ export async function POST(req: NextRequest) {
 
         await dbConnect();
 
-        const page = await PageModel.create({
-            pageName: "home",
-            title: "Home page",
-            meta_title: "meta title",
-            meta_description: "meta description"
-        });
-
+        let page = await PageModel.findOne({ pageName: "home" });
         if (!page) {
-            return ApiResponse.error("Home page is not found.", 404);
+            page = await PageModel.create({
+                pageName: "home",
+                title: "Home page",
+                meta_title: "Najjar Furniture",
+                meta_description: "Timeless Furniture, Thoughtfully Crafted."
+            });
         }
 
-        const { heading, paragraph, banner } = parsed.data;
+        const { heading, paragraph, banner, whatsAppNumber, ctaLabel, showWhatsApp, showSocials } = parsed.data;
 
         const bannerCloud = await uploadOnCloudinary(banner);
 
@@ -50,9 +57,22 @@ export async function POST(req: NextRequest) {
             content: {
                 heading,
                 paragraph,
-                banner: bannerCloud?.url
+                banner: bannerCloud?.secure_url || bannerCloud?.url,
+                bannerPublicId: bannerCloud?.public_id,
+                whatsAppNumber: whatsAppNumber ?? "",
+                ctaLabel: ctaLabel ?? "Chat on WhatsApp",
+                showWhatsApp: showWhatsApp ?? true,
+                showSocials: showSocials ?? true,
             },
         });
+
+        try {
+            revalidateTag("home-page-data", "max");
+            revalidateTag("page-sections", "max");
+            revalidatePath("/");
+        } catch (revalErr) {
+            console.error("Revalidation failed:", revalErr);
+        }
 
         return ApiResponse.success(section, "Hero banner created", 201);
     } catch (error) {
@@ -61,9 +81,8 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// PATCH /api/pages/:pageId/sections/banner
+// PATCH /api/control-panel/page/home/hero
 // Updates the existing banner section's content for a page.
-// Body must be a full HeroSchema payload (partial updates aren't merged).
 export async function PATCH(req: NextRequest) {
     try {
         const formData = await req.formData();
@@ -71,11 +90,19 @@ export async function PATCH(req: NextRequest) {
         const rawBanner = formData.get("banner");
         const rawHeading = formData.get("heading");
         const rawParagraph = formData.get("paragraph");
+        const rawWhatsAppNumber = formData.get("whatsAppNumber");
+        const rawCtaLabel = formData.get("ctaLabel");
+        const rawShowWhatsApp = formData.get("showWhatsApp");
+        const rawShowSocials = formData.get("showSocials");
 
         const parsed = HeroUpdatedSchema.safeParse({
-            heading: rawHeading ? String(rawHeading) : undefined,
-            paragraph: rawParagraph ? String(rawParagraph) : undefined,
+            heading: rawHeading !== null ? String(rawHeading) : undefined,
+            paragraph: rawParagraph !== null ? String(rawParagraph) : undefined,
             banner: rawBanner instanceof File && rawBanner.size > 0 ? rawBanner : undefined,
+            whatsAppNumber: rawWhatsAppNumber !== null ? String(rawWhatsAppNumber).trim() : undefined,
+            ctaLabel: rawCtaLabel !== null ? String(rawCtaLabel).trim() : undefined,
+            showWhatsApp: rawShowWhatsApp !== null ? rawShowWhatsApp === "true" || rawShowWhatsApp === "1" : undefined,
+            showSocials: rawShowSocials !== null ? rawShowSocials === "true" || rawShowSocials === "1" : undefined,
         });
 
         if (!parsed.success) {
@@ -86,28 +113,49 @@ export async function PATCH(req: NextRequest) {
             );
         }
 
-        const { heading, paragraph, banner } = parsed.data;
+        const { heading, paragraph, banner, whatsAppNumber, ctaLabel, showWhatsApp, showSocials } = parsed.data;
 
-        if (heading === undefined && paragraph === undefined && banner === undefined) {
+        if (
+            heading === undefined &&
+            paragraph === undefined &&
+            banner === undefined &&
+            whatsAppNumber === undefined &&
+            ctaLabel === undefined &&
+            showWhatsApp === undefined &&
+            showSocials === undefined
+        ) {
             return ApiResponse.error("No fields provided to update.", 400);
         }
 
         await dbConnect();
 
-        const page = await PageModel.findOne({ pageName: "home" });
+        let page = await PageModel.findOne({ pageName: "home" });
         if (!page) {
-            return ApiResponse.error("Home page is not found.", 404);
+            page = await PageModel.create({
+                pageName: "home",
+                title: "Home page",
+                meta_title: "Najjar Furniture",
+                meta_description: "Timeless Furniture, Thoughtfully Crafted."
+            });
         }
 
-        const section = await PageSection.findOne({ pageId: page._id, type: "banner" });
+        let section = await PageSection.findOne({ pageId: page._id, type: "banner" });
         if (!section) {
-            return ApiResponse.error("Banner section not found.", 404);
+            section = await PageSection.create({
+                pageId: page._id,
+                type: "banner",
+                content: {},
+            });
         }
 
-        const updatedContent: Record<string, unknown> = { ...section.content };
+        const updatedContent: Record<string, unknown> = { ...(section.content || {}) };
 
         if (heading !== undefined) updatedContent.heading = heading;
         if (paragraph !== undefined) updatedContent.paragraph = paragraph;
+        if (whatsAppNumber !== undefined) updatedContent.whatsAppNumber = whatsAppNumber;
+        if (ctaLabel !== undefined) updatedContent.ctaLabel = ctaLabel;
+        if (showWhatsApp !== undefined) updatedContent.showWhatsApp = showWhatsApp;
+        if (showSocials !== undefined) updatedContent.showSocials = showSocials;
 
         if (banner) {
             const bannerCloud = await uploadOnCloudinary(banner);
@@ -116,7 +164,7 @@ export async function PATCH(req: NextRequest) {
                 return ApiResponse.error("Banner upload failed.", 502);
             }
 
-            const previousPublicId = (section.content as { bannerPublicId?: string }).bannerPublicId;
+            const previousPublicId = (section.content as { bannerPublicId?: string })?.bannerPublicId;
             if (previousPublicId) {
                 await deleteUploadedFileOnCloudinary(previousPublicId, "image");
             }
@@ -128,6 +176,14 @@ export async function PATCH(req: NextRequest) {
         section.content = updatedContent;
         section.markModified("content");
         await section.save();
+
+        try {
+            revalidateTag("home-page-data", "max");
+            revalidateTag("page-sections", "max");
+            revalidatePath("/");
+        } catch (revalErr) {
+            console.error("Revalidation failed:", revalErr);
+        }
 
         return ApiResponse.success(section);
     } catch (error) {
