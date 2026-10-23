@@ -10,12 +10,12 @@ interface WhatsAppButtonProps {
 }
 
 export default function WhatsAppButton({
-    phoneNumber = "8801XXXXXXXXX",
+    phoneNumber = "",
     message,
     label = "Chat on WhatsApp",
     className = "",
 }: WhatsAppButtonProps) {
-    const href = getWhatsAppUrl(phoneNumber, message);
+    const href = phoneNumber ? getWhatsAppUrl(phoneNumber, message) : "#";
 
     return (
         <Link

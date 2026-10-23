@@ -100,11 +100,15 @@ export default function ContactFormPanel({ contact }: { contact: ContactSection 
                   className="w-full rounded-lg border border-[#e5ded3] px-3.5 py-2.5 sm:py-2 text-base sm:text-sm text-[#2b1810] outline-none focus:border-[#c9a06a]"
                 >
                   <option value="">Select a topic</option>
-                  {contact.topics.map((t) => (
-                    <option key={t.label} value={t.label}>
-                      {t.label}
-                    </option>
-                  ))}
+                  {contact.topics && contact.topics.length > 0 ? (
+                    contact.topics.map((t) => (
+                      <option key={t.label} value={t.label}>
+                        {t.label}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="General Inquiry">General Inquiry</option>
+                  )}
                 </select>
               </Field>
 
@@ -148,13 +152,13 @@ export default function ContactFormPanel({ contact }: { contact: ContactSection 
               <h3 className="text-base font-semibold">Contact Details</h3>
 
               <div className="mt-5 space-y-4 text-xs sm:text-[12.5px]">
-                {contact.emails.map((item) => (
+                {contact.emails?.filter((i) => i.value?.trim()).map((item) => (
                   <InfoRow key={item.value + item.label} icon={<Mail className="size-4" />} label={`Email · ${item.label || "Email"}`} value={item.value} />
                 ))}
-                {contact.phones.map((item) => (
+                {contact.phones?.filter((i) => i.value?.trim()).map((item) => (
                   <InfoRow key={item.value + item.label} icon={<Phone className="size-4" />} label={`Phone · ${item.label || "Phone"}`} value={item.value} />
                 ))}
-                {contact.whatsapps.map((item) => (
+                {contact.whatsapps?.filter((i) => i.value?.trim()).map((item) => (
                   <InfoRow
                     key={item.value + item.label}
                     icon={<Clock className="size-4" />}
@@ -163,25 +167,42 @@ export default function ContactFormPanel({ contact }: { contact: ContactSection 
                     href={waLink(item.value)}
                   />
                 ))}
-                <InfoRow icon={<MapPin className="size-4" />} label="Address" value={contact.address} />
-                <InfoRow icon={<Clock className="size-4" />} label="Showroom Hours" value={contact.showroomHours} />
+                {contact.address?.trim() ? (
+                  <InfoRow icon={<MapPin className="size-4" />} label="Address" value={contact.address} />
+                ) : null}
+                {contact.showroomHours?.trim() ? (
+                  <InfoRow icon={<Clock className="size-4" />} label="Showroom Hours" value={contact.showroomHours} />
+                ) : null}
+                {!contact.emails?.some((i) => i.value?.trim()) &&
+                  !contact.phones?.some((i) => i.value?.trim()) &&
+                  !contact.whatsapps?.some((i) => i.value?.trim()) &&
+                  !contact.address?.trim() &&
+                  !contact.showroomHours?.trim() && (
+                    <p className="text-xs sm:text-[12.5px] text-[#f2ead9]/60">
+                      Contact details will be updated shortly.
+                    </p>
+                  )}
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.05)] md:p-7">
-              <h3 className="text-sm font-semibold text-[#2b1810]">Response Times</h3>
-              <ul className="mt-4 space-y-3">
-                {contact.responseTimes.map((r) => (
-                  <li
-                    key={r.channel}
-                    className="flex items-center justify-between text-xs sm:text-[12.5px] text-[#3a2c22]/75"
-                  >
-                    <span>{r.channel}</span>
-                    <span className="font-medium text-[#2b1810]">{r.time}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {contact.responseTimes && contact.responseTimes.some((r) => r.channel?.trim()) && (
+              <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.05)] md:p-7">
+                <h3 className="text-sm font-semibold text-[#2b1810]">Response Times</h3>
+                <ul className="mt-4 space-y-3">
+                  {contact.responseTimes
+                    .filter((r) => r.channel?.trim() && r.time?.trim())
+                    .map((r) => (
+                      <li
+                        key={r.channel}
+                        className="flex items-center justify-between text-xs sm:text-[12.5px] text-[#3a2c22]/75"
+                      >
+                        <span>{r.channel}</span>
+                        <span className="font-medium text-[#2b1810]">{r.time}</span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </Container>

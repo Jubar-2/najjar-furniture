@@ -14,6 +14,10 @@ export default function ContactHelpCategories({ topics }: ContactHelpCategoriesP
     document.getElementById("contact-form")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  if (!topics || topics.length === 0) {
+    return null;
+  }
+
   return (
     <section className="bg-[#fdf6ee] pb-4 pt-12">
       <Container>

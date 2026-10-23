@@ -12,13 +12,17 @@ interface ContactCTAProps {
 }
 
 export default function ContactCTA({
-  title = "Still have questions?",
-  subtitle = "We're here to help",
-  description = "Our team is available every day. Reach out by phone, email, or visit our showroom in person.",
+  title,
+  subtitle,
+  description,
   ctaLabel = "Chat With Us",
-  ctaHref = "https://wa.me/8801XXXXXXXXX",
+  ctaHref,
 }: ContactCTAProps) {
-  const resolvedHref = getWhatsAppUrl(ctaHref);
+  if (!title?.trim() && !subtitle?.trim() && !description?.trim() && !ctaHref?.trim()) {
+    return null;
+  }
+
+  const resolvedHref = ctaHref?.trim() ? getWhatsAppUrl(ctaHref) : "#";
 
   return (
     <section className="bg-[#fdf6ee] py-10 sm:py-16">
@@ -28,18 +32,26 @@ export default function ContactCTA({
             <MessageCircle className="size-5" />
           </span>
 
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#f2ead9]">{title}</h2>
-          <p className="text-base sm:text-lg font-semibold text-[#c9a06a]">{subtitle}</p>
-          <p className="max-w-md text-xs sm:text-[13px] leading-relaxed text-[#f2ead9]/75">{description}</p>
+          {title?.trim() ? (
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#f2ead9]">{title}</h2>
+          ) : null}
+          {subtitle?.trim() ? (
+            <p className="text-base sm:text-lg font-semibold text-[#c9a06a]">{subtitle}</p>
+          ) : null}
+          {description?.trim() ? (
+            <p className="max-w-md text-xs sm:text-[13px] leading-relaxed text-[#f2ead9]/75">{description}</p>
+          ) : null}
 
-          <Link
-            href={resolvedHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 sm:mt-3 inline-flex items-center gap-2.5 rounded-full bg-[#c9a06a] px-6 py-3 text-xs sm:text-[13px] font-semibold text-[#2c160d] transition-colors hover:bg-[#d9b27f]"
-          >
-            {ctaLabel}
-          </Link>
+          {ctaHref?.trim() ? (
+            <Link
+              href={resolvedHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 sm:mt-3 inline-flex items-center gap-2.5 rounded-full bg-[#c9a06a] px-6 py-3 text-xs sm:text-[13px] font-semibold text-[#2c160d] transition-colors hover:bg-[#d9b27f]"
+            >
+              {ctaLabel}
+            </Link>
+          ) : null}
         </div>
       </Container>
     </section>

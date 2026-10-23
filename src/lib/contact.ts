@@ -71,47 +71,20 @@ export function resolveSocialIcon(name?: string): LucideIcon {
 }
 
 export const DEFAULT_CONTACT: ContactSection = {
-  emails: [
-    { label: "Support", value: "support@najjarfurniture.com" },
-    { label: "General", value: "info@najjarfurniture.com" },
-  ],
-  phones: [
-    { label: "Sales", value: "+880 1XXX-XXXXXX" },
-    { label: "Showroom", value: "+880 1XXX-XXXXXX" },
-  ],
-  whatsapps: [
-    { label: "Sales", value: "+880 1XXX-XXXXXX" },
-    { label: "Support", value: "+880 1XXX-XXXXXX" },
-  ],
-  socials: [
-    { name: "facebook", url: "https://facebook.com" },
-    { name: "instagram", url: "https://instagram.com" },
-    { name: "youtube", url: "https://youtube.com" },
-    { name: "linkedin", url: "https://linkedin.com" },
-  ],
-  topics: [
-    { label: "General Inquiry", icon: "comment" },
-    { label: "Custom Order", icon: "ruler" },
-    { label: "Bulk / Wholesale", icon: "boxes" },
-    { label: "Delivery & Shipping", icon: "truck" },
-    { label: "Warranty & Repair", icon: "shield" },
-    { label: "Showroom Visit", icon: "map-pin" },
-  ],
-  address: "Dhaka, Bangladesh",
-  showroomHours: "Sat–Thu, 10am–8pm",
-  responseTimes: [
-    { channel: "Phone", time: "Instant" },
-    { channel: "WhatsApp", time: "< 30 mins" },
-    { channel: "Email", time: "1–2 days" },
-    { channel: "Contact Form", time: "1–2 days" },
-  ],
+  emails: [],
+  phones: [],
+  whatsapps: [],
+  socials: [],
+  topics: [],
+  address: "",
+  showroomHours: "",
+  responseTimes: [],
   cta: {
-    title: "Still have questions?",
-    subtitle: "We're here to help",
-    description:
-      "Our team is available every day. Reach out by phone, email, or visit our showroom in person.",
-    ctaLabel: "Chat With Us",
-    ctaHref: "https://wa.me/8801XXXXXXXXX",
+    title: "",
+    subtitle: "",
+    description: "",
+    ctaLabel: "",
+    ctaHref: "",
   },
 };
 
@@ -119,6 +92,7 @@ import { getWhatsAppUrl, normalizeWhatsAppNumber } from "@/lib/whatsapp";
 export { getWhatsAppUrl, normalizeWhatsAppNumber };
 
 /** Turns any phone number, WhatsApp link, or formatted string into an official wa.me click-to-chat URL. */
-export function waLink(value: string, message?: string): string {
+export function waLink(value?: string, message?: string): string {
+  if (!value || !value.trim()) return "#";
   return getWhatsAppUrl(value, message);
 }

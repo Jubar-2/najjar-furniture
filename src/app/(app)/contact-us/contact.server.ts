@@ -3,9 +3,8 @@ import PageModel from "@/models/page.model";
 import PageSection from "@/models/pageSections.model";
 import { DEFAULT_CONTACT } from "@/lib/contact";
 import type { ContactSection } from "@/schemas/contact.schema";
-import { unstable_cache } from "next/cache";
 
-async function fetchContactSectionFromDb(): Promise<ContactSection> {
+export async function fetchContactSectionFromDb(): Promise<ContactSection> {
     await dbConnect();
 
     const page = await PageModel.findOne({ pageName: "contact" });
@@ -21,26 +20,29 @@ async function fetchContactSectionFromDb(): Promise<ContactSection> {
     if (!stored) return DEFAULT_CONTACT;
 
     return {
-        ...DEFAULT_CONTACT,
-        ...stored,
-        cta: { ...DEFAULT_CONTACT.cta, ...(stored.cta ?? {}) },
+        emails: Array.isArray(stored.emails) ? stored.emails : DEFAULT_CONTACT.emails,
+        phones: Array.isArray(stored.phones) ? stored.phones : DEFAULT_CONTACT.phones,
+        whatsapps: Array.isArray(stored.whatsapps) ? stored.whatsapps : DEFAULT_CONTACT.whatsapps,
+        socials: Array.isArray(stored.socials) ? stored.socials : DEFAULT_CONTACT.socials,
+        topics: Array.isArray(stored.topics) ? stored.topics : DEFAULT_CONTACT.topics,
+        address: typeof stored.address === "string" ? stored.address : DEFAULT_CONTACT.address,
+        showroomHours: typeof stored.showroomHours === "string" ? stored.showroomHours : DEFAULT_CONTACT.showroomHours,
+        responseTimes: Array.isArray(stored.responseTimes) ? stored.responseTimes : DEFAULT_CONTACT.responseTimes,
+        cta: {
+            title: stored.cta?.title ?? DEFAULT_CONTACT.cta.title,
+            subtitle: stored.cta?.subtitle ?? DEFAULT_CONTACT.cta.subtitle,
+            description: stored.cta?.description ?? DEFAULT_CONTACT.cta.description,
+            ctaLabel: stored.cta?.ctaLabel ?? DEFAULT_CONTACT.cta.ctaLabel,
+            ctaHref: stored.cta?.ctaHref ?? DEFAULT_CONTACT.cta.ctaHref,
+        },
     };
 }
 
 export async function getContactSection(): Promise<ContactSection> {
     try {
-        const getCachedContact = unstable_cache(
-            fetchContactSectionFromDb,
-            ["contact-section"],
-            {
-                revalidate: 900,
-                tags: ["contact-section"],
-            }
-        );
-
-        return await getCachedContact();
+        return await fetchContactSectionFromDb();
     } catch (error) {
-        console.error("Failed to load contact section:", error);
+        console.error("Failed to load contact section dynamically:", error);
         return DEFAULT_CONTACT;
     }
 }

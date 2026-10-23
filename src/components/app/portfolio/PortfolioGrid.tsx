@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 import { DEFAULT_CONTACT } from "@/lib/contact";
+import { useGetContact } from "@/customHooks/useContact";
 import PortfolioCard from "./PortfolioCard";
 
 export interface PortfolioItem {
@@ -75,6 +76,7 @@ export default function PortfolioGrid({
     const [selected, setSelected] = useState<PortfolioItem | null>(null);
     const [modalActiveImage, setModalActiveImage] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<"large" | "grid">("large");
+    const { data: contact } = useGetContact();
 
     const handleOpenDetail = (item: PortfolioItem) => {
         setSelected(item);
@@ -328,7 +330,7 @@ export default function PortfolioGrid({
                                     </Link>
                                     <a
                                         href={getWhatsAppUrl(
-                                            DEFAULT_CONTACT.whatsapps[0]?.value || "8801XXXXXXXXX",
+                                            contact?.whatsapps?.[0]?.value || DEFAULT_CONTACT.whatsapps[0]?.value || "",
                                             `Hello Najjar Furniture! I am interested in custom ordering or learning more about the "${selected.title}" piece from your portfolio.`
                                         )}
                                         target="_blank"

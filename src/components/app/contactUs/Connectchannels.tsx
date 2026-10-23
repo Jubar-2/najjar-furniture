@@ -13,7 +13,11 @@ function formatName(name: string): string {
 }
 
 export default function ConnectChannels({ socials }: { socials: SocialLink[] }) {
-  const validSocials = socials?.filter((s) => s.name && s.url) || [];
+  const validSocials = socials?.filter((s) => s.name?.trim() && s.url?.trim() && s.url !== "#") || [];
+
+  if (validSocials.length === 0) {
+    return null;
+  }
 
   return (
     <section className="bg-white py-10 sm:py-16">

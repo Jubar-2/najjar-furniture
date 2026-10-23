@@ -44,7 +44,7 @@ function Banner() {
         }
     }, [data]);
 
-    const primaryContactWhatsApp = contactData?.whatsapps?.[0]?.value || "+880 1XXX-XXXXXX";
+    const primaryContactWhatsApp = contactData?.whatsapps?.[0]?.value || "";
     const effectiveWhatsAppNumber = whatsAppNumber.trim() || primaryContactWhatsApp;
     const effectiveCtaLabel = ctaLabel.trim() || "Chat on WhatsApp";
 

@@ -36,13 +36,13 @@ export default function Footer({
 
   const socials = contact.socials && contact.socials.length > 0
     ? contact.socials
-    : DEFAULT_CONTACT.socials;
+    : [];
 
-  const primaryEmail = contact.emails?.[0]?.value || DEFAULT_CONTACT.emails[0]?.value || "";
-  const primaryPhone = contact.phones?.[0]?.value || DEFAULT_CONTACT.phones[0]?.value || "";
-  const primaryWhatsapp = contact.whatsapps?.[0]?.value || DEFAULT_CONTACT.whatsapps[0]?.value || "";
-  const address = contact.address || DEFAULT_CONTACT.address;
-  const showroomHours = contact.showroomHours || DEFAULT_CONTACT.showroomHours;
+  const primaryEmail = contact.emails?.[0]?.value || "";
+  const primaryPhone = contact.phones?.[0]?.value || "";
+  const primaryWhatsapp = contact.whatsapps?.[0]?.value || "";
+  const address = contact.address || "";
+  const showroomHours = contact.showroomHours || "";
 
   const phoneDigits = primaryPhone.replace(/\D/g, "");
 

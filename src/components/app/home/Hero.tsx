@@ -32,7 +32,7 @@ function Hero({
     headline = ["Crafted by Nature.", "Designed for Life."],
     description = "Every piece is thoughtfully designed and expertly handcrafted to combine natural beauty, lasting durability, and refined elegance—creating furniture that belongs in your space for generations",
     ctaLabel = "Chat on WhatsApp",
-    whatsAppNumber = DEFAULT_CONTACT.whatsapps[0]?.value || "8801XXXXXXXXX",
+    whatsAppNumber = DEFAULT_CONTACT.whatsapps[0]?.value || "",
     showWhatsApp = true,
     showSocials = true,
     socials = DEFAULT_CONTACT.socials,
