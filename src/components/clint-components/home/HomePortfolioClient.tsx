@@ -49,7 +49,7 @@ export default function HomePortfolioClient() {
         return data?.paragraph && data.paragraph.replace(/<[^>]*>/g, "").trim()
             ? data.paragraph
             : undefined;
-    }, [data?.paragraph]);
+    }, [data]);
 
     return <PortfolioShowcase images={images} description={paragraph} />;
 }
