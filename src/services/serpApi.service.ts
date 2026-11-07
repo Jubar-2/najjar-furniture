@@ -1,3 +1,7 @@
+if (typeof window !== "undefined") {
+  throw new Error("This module can only be executed on the server.");
+}
+
 import axios, { AxiosError, AxiosInstance } from "axios";
 
 export interface SerpApiReviewUser {

@@ -30,7 +30,7 @@ export async function GET() {
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Failed to retrieve Google reviews";
-    console.error("[API] GET /api/google-reviews error:", error);
+    console.error("[API] GET /api/google-reviews error:", message);
 
     return NextResponse.json(
       {

@@ -1,3 +1,7 @@
+if (typeof window !== "undefined") {
+  throw new Error("This module can only be executed on the server.");
+}
+
 import { fetchAllGoogleReviews, type NormalizedGoogleReview } from "./serpApi.service";
 
 export interface CachedReviewsData {
