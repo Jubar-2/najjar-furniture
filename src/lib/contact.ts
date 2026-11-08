@@ -71,20 +71,26 @@ export function resolveSocialIcon(name?: string): LucideIcon {
 }
 
 export const DEFAULT_CONTACT: ContactSection = {
-  emails: [],
-  phones: [],
-  whatsapps: [],
+  emails: [
+    { label: "Support", value: "support.najjar.riyad.furniture@gmail.com" },
+  ],
+  phones: [
+    { label: "Sales", value: "+966573250180" },
+  ],
+  whatsapps: [
+    { label: "Sales", value: "+966 57 325 0180" },
+  ],
   socials: [],
   topics: [],
-  address: "",
-  showroomHours: "",
+  address: "6231 Ibrahim Al Jayli, Al Sina'iyah, RENB3410, 3410, Riyadh 12844",
+  showroomHours: "Sat–Thu, 10am–8pm",
   responseTimes: [],
   cta: {
-    title: "",
-    subtitle: "",
+    title: "Still have questions?",
+    subtitle: "We're here to help",
     description: "",
-    ctaLabel: "",
-    ctaHref: "",
+    ctaLabel: "Chat With Us",
+    ctaHref: "https://wa.me/966573250180",
   },
 };
 

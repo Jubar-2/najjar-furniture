@@ -12,7 +12,12 @@
  * - Safe fallback for placeholders (+880 1XXX-XXXXXX or 8801XXXXXXXXX)
  */
 
-export const DEFAULT_WHATSAPP_NUMBER = "8801XXXXXXXXX";
+// Najjar Riyadh Furniture official business WhatsApp number (+966 57 325 0180)
+export const DEFAULT_WHATSAPP_NUMBER = "966573250180";
+
+// Pre-filled customer inquiry message
+export const DEFAULT_WHATSAPP_MESSAGE =
+    "Hello, I would like to know more about your products and services.";
 
 /**
  * Normalizes any phone number string or WhatsApp URL into pure digits with country code.
@@ -77,9 +82,24 @@ export function normalizeWhatsAppNumber(input?: string | null): string {
         digits = digits.slice(2);
     }
 
-    // Explicit international number with '+' prefix (e.g., +1 555 123 4567, +44 7911 123456)
+    // Explicit international number with '+' prefix (e.g., +966 57 325 0180, +1 555 123 4567)
     if (hasLeadingPlus) {
         return digits;
+    }
+
+    // Already has Saudi Arabia country code 966
+    if (digits.startsWith("966")) {
+        return digits;
+    }
+
+    // Saudi Arabia standard local mobile number: 10 digits starting with "05" (e.g. 0573250180)
+    if (digits.startsWith("05") && digits.length === 10) {
+        return `966${digits.slice(1)}`;
+    }
+
+    // Saudi Arabia local number without leading zero: 9 digits starting with "5" (e.g. 573250180)
+    if (digits.startsWith("5") && digits.length === 9) {
+        return `966${digits}`;
     }
 
     // Already has Bangladesh country code 880

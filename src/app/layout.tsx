@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Upright, Noto_Sans_Arabic } from "next/font/google";
 import QueryClientProvider from "@/providers/QueryClientProvider";
 import { SITE_NAME } from "@/lib/sitePages";
+import { FloatingWhatsAppButton } from "@/components/app/WhatsAppButton";
 import "./globals.css";
 
 const notoSansArabic = Noto_Sans_Arabic({
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col max-w-[2560px] mx-auto" suppressHydrationWarning>
         <QueryClientProvider>
           {children}
+          <FloatingWhatsAppButton />
         </QueryClientProvider>
       </body>
 
