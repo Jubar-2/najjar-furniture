@@ -6,6 +6,7 @@ import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
 import { getPageBanner } from "@/lib/getPageBanner";
 import { getPageContent } from "@/lib/getPageContent";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import type { Metadata } from "next";
 
 export const revalidate = 900;
@@ -88,24 +89,32 @@ export default async function TermsPage() {
   const banner = await getPageBanner("terms-conditions");
 
   return (
-    <main>
-      <PageBanner
-        imageSrc={banner?.image || "/images/legal-banner.jpg"}
-        title={banner?.title || "Terms & Conditions"}
-        breadcrumb={[{ label: "Home", href: "/" }]}
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", item: "/" },
+          { name: "Terms & Conditions", item: "/terms-conditions" },
+        ]}
       />
+      <main>
+        <PageBanner
+          imageSrc={banner?.image || "/images/legal-banner.jpg"}
+          title={banner?.title || "Terms & Conditions"}
+          breadcrumb={[{ label: "Home", href: "/" }]}
+        />
 
-      <section className="bg-white py-14">
-        <Container>
-          <div className="mx-auto max-w-3xl">
-            <Suspense fallback={<TermsConditionsSkeleton />}>
-              <TermsConditionsBody />
-            </Suspense>
-          </div>
-        </Container>
-      </section>
+        <section className="bg-white py-14">
+          <Container>
+            <div className="mx-auto max-w-3xl">
+              <Suspense fallback={<TermsConditionsSkeleton />}>
+                <TermsConditionsBody />
+              </Suspense>
+            </div>
+          </Container>
+        </section>
 
-      <Footer />
-    </main>
+        <Footer />
+      </main>
+    </>
   );
 }

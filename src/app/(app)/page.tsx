@@ -19,6 +19,7 @@ import { HOME_ABOUT_QUERY_KEY } from "@/customHooks/useHomeAbout";
 import { HOME_GALLERY_QUERY_KEY } from "@/customHooks/getGallery";
 import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
 import { getCachedHomeData } from "@/services/homeData";
+import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/seo/JsonLd";
 import type { Metadata } from "next";
 
 export const revalidate = 900;
@@ -44,6 +45,8 @@ export default async function Home() {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
+            <OrganizationJsonLd />
+            <WebSiteJsonLd />
             <main>
                 {/* Hero — dynamic from DB */}
                 <HomeHeroClint />

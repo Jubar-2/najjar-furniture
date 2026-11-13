@@ -10,6 +10,7 @@ import { getPageBanner } from "@/lib/getPageBanner";
 import { getCachedHomeData } from "@/services/homeData";
 import { HOME_ABOUT_QUERY_KEY } from "@/customHooks/useHomeAbout";
 import { HOME_TESTIMONIALS_QUERY_KEY } from "@/customHooks/useTestimonials";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import type { Metadata } from "next";
 
 export const revalidate = 900;
@@ -33,6 +34,12 @@ export default async function AboutPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", item: "/" },
+          { name: "About Us", item: "/about-us" },
+        ]}
+      />
       <main>
         <PageBanner
           imageSrc={banner?.image || "/images/about-banner.jpg"}

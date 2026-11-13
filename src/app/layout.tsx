@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Upright, Noto_Sans_Arabic } from "next/font/google";
 import QueryClientProvider from "@/providers/QueryClientProvider";
 import { SITE_NAME } from "@/lib/sitePages";
+import { getBaseUrl } from "@/lib/siteUrl";
 import { FloatingWhatsAppButton } from "@/components/app/WhatsAppButton";
 import "./globals.css";
 
@@ -18,6 +19,7 @@ const cormorantUpright = Cormorant_Upright({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getBaseUrl()),
   title: {
     default: `${SITE_NAME} – Timeless Furniture, Thoughtfully Crafted`,
     template: `%s – ${SITE_NAME}`,
@@ -31,6 +33,13 @@ export const metadata: Metadata = {
     "custom furniture",
     "home decor",
   ],
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -46,7 +55,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <FloatingWhatsAppButton />
         </QueryClientProvider>
       </body>
-
     </html>
   );
 }

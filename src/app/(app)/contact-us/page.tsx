@@ -9,6 +9,7 @@ import { getContactSection } from "./contact.server";
 import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
 import { getPageBanner } from "@/lib/getPageBanner";
 import { CONTACT_QUERY_KEY } from "@/customHooks/useContact";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,12 @@ export default async function ContactPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", item: "/" },
+          { name: "Contact Us", item: "/contact-us" },
+        ]}
+      />
       <main>
         <PageBanner
           imageSrc={banner?.image || "/images/contact-banner.jpg"}

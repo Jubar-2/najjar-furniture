@@ -5,6 +5,7 @@ import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
 import { getPageBanner } from "@/lib/getPageBanner";
 import dbConnect from "@/db/dbConnect";
 import PortfolioItem from "@/models/portfolioItem.model";
+import { BreadcrumbJsonLd, PortfolioItemListJsonLd } from "@/components/seo/JsonLd";
 import type { Metadata } from "next";
 
 import { unstable_cache } from "next/cache";
@@ -22,7 +23,7 @@ async function fetchPortfolioItemsFromDb() {
     ...item,
     subImages: Array.isArray(item.subImages)
       ? item.subImages
-          .map((s: any) => (typeof s === "string" ? s : s?.url))
+          .map((s: string | { url?: string }) => (typeof s === "string" ? s : s?.url))
           .filter(Boolean)
       : [],
   }));
@@ -53,16 +54,25 @@ export default async function PortfolioPage() {
   ]);
 
   return (
-    <main>
-      <PageBanner
-        imageSrc={banner?.image || "/images/about-banner.jpg"}
-        title={banner?.title || "Portfolio"}
-        breadcrumb={[{ label: "Home", href: "/" }]}
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", item: "/" },
+          { name: "Portfolio", item: "/portfolio" },
+        ]}
       />
+      <PortfolioItemListJsonLd items={initialItems} />
+      <main>
+        <PageBanner
+          imageSrc={banner?.image || "/images/about-banner.jpg"}
+          title={banner?.title || "Portfolio"}
+          breadcrumb={[{ label: "Home", href: "/" }]}
+        />
 
-      <PortfolioGrid initialItems={initialItems} />
+        <PortfolioGrid initialItems={initialItems} />
 
-      <Footer />
-    </main>
+        <Footer />
+      </main>
+    </>
   );
 }

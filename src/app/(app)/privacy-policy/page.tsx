@@ -4,6 +4,7 @@ import Footer from "@/components/app/Footer";
 import { getPageMeta, buildMetadata } from "@/lib/getPageMeta";
 import { getPageBanner } from "@/lib/getPageBanner";
 import { getPageContent } from "@/lib/getPageContent";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import type { Metadata } from "next";
 
 export const revalidate = 900;
@@ -99,7 +100,14 @@ export default async function PrivacyPolicyPage() {
     : LAST_UPDATED;
 
   return (
-    <main>
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", item: "/" },
+          { name: "Privacy Policy", item: "/privacy-policy" },
+        ]}
+      />
+      <main>
       <PageBanner
         imageSrc={banner?.image || "/images/legal-banner.jpg"}
         title={banner?.title || "Privacy Policy"}
@@ -148,5 +156,6 @@ export default async function PrivacyPolicyPage() {
 
       <Footer />
     </main>
+    </>
   );
 }

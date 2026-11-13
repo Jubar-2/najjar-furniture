@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
 import { getGoogleVerificationCode } from "@/lib/getPageMeta";
+import { getBaseUrl } from "@/lib/siteUrl";
 
 export async function generateMetadata(): Promise<Metadata> {
+  const baseUrl = getBaseUrl();
   const verificationCode = await getGoogleVerificationCode();
 
-  if (!verificationCode) {
-    return {};
-  }
-
   return {
-    verification: {
-      google: verificationCode,
-    },
+    metadataBase: new URL(baseUrl),
+    ...(verificationCode ? { verification: { google: verificationCode } } : {}),
   };
 }
 
@@ -22,4 +19,3 @@ export default function PublicAppLayout({
 }) {
   return <>{children}</>;
 }
-

@@ -1,6 +1,7 @@
 import dbConnect from "@/db/dbConnect";
 import PageModel from "@/models/page.model";
 import { getSitePage, SITE_NAME } from "@/lib/sitePages";
+import { getBaseUrl, getCanonicalUrl } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 
@@ -10,6 +11,9 @@ export interface ResolvedPageMeta {
   keywords: string;
   ogImage: string;
   author: string;
+  pageName?: string;
+  route?: string;
+  canonicalUrl?: string;
   googleSiteVerification?: string;
 }
 
@@ -71,6 +75,8 @@ async function fetchPageMetaFromDb(
   pageName: string,
 ): Promise<ResolvedPageMeta> {
   const fallback = getSitePage(pageName);
+  const route = fallback?.route || (pageName === "home" ? "/" : `/${pageName}`);
+  const canonicalUrl = getCanonicalUrl(route);
 
   await dbConnect();
 
@@ -89,6 +95,9 @@ async function fetchPageMetaFromDb(
       keywords: fallback?.defaultKeywords ?? "",
       ogImage: "",
       author: SITE_NAME,
+      pageName,
+      route,
+      canonicalUrl,
       googleSiteVerification: effectiveVerification,
     };
   }
@@ -99,6 +108,9 @@ async function fetchPageMetaFromDb(
     keywords: page.meta_keywords || fallback?.defaultKeywords || "",
     ogImage: page.meta_og_image || "",
     author: page.meta_author || SITE_NAME,
+    pageName,
+    route,
+    canonicalUrl,
     googleSiteVerification: effectiveVerification,
   };
 }
@@ -110,6 +122,8 @@ async function fetchPageMetaFromDb(
  */
 export async function getPageMeta(pageName: string): Promise<ResolvedPageMeta> {
   const fallback = getSitePage(pageName);
+  const route = fallback?.route || (pageName === "home" ? "/" : `/${pageName}`);
+  const canonicalUrl = getCanonicalUrl(route);
 
   try {
     const getCachedMeta = unstable_cache(
@@ -138,6 +152,9 @@ export async function getPageMeta(pageName: string): Promise<ResolvedPageMeta> {
         keywords: fallback?.defaultKeywords ?? "",
         ogImage: "",
         author: SITE_NAME,
+        pageName,
+        route,
+        canonicalUrl,
         googleSiteVerification: undefined,
       };
     }
@@ -145,12 +162,18 @@ export async function getPageMeta(pageName: string): Promise<ResolvedPageMeta> {
 }
 
 /**
- * Builds a Next.js Metadata object from a resolved meta. Pass the resolved
- * values in so callers can `await getPageMeta()` once and use the result
- * for both metadata and rendering if needed.
+ * Builds a Next.js Metadata object from a resolved meta.
+ * Provides canonical URL, OpenGraph, Twitter card, robots, and verification directives.
  */
 export function buildMetadata(meta: ResolvedPageMeta): Metadata {
+  const baseUrl = getBaseUrl();
+  const canonicalUrl = meta.canonicalUrl || getCanonicalUrl(meta.route || "/");
+  const defaultOgImage = `${baseUrl}/images/about-banner.jpg`;
+  const ogImageUrl =
+    meta.ogImage && meta.ogImage.trim() ? meta.ogImage.trim() : defaultOgImage;
+
   return {
+    metadataBase: new URL(baseUrl),
     title: {
       absolute: meta.title,
     },
@@ -161,11 +184,44 @@ export function buildMetadata(meta: ResolvedPageMeta): Metadata {
           .map((k) => k.trim())
           .filter(Boolean)
       : undefined,
-    authors: meta.author ? [{ name: meta.author }] : undefined,
+    authors: meta.author ? [{ name: meta.author }] : [{ name: SITE_NAME }],
+    creator: SITE_NAME,
+    publisher: SITE_NAME,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
     openGraph: {
       title: meta.title,
       description: meta.description || undefined,
-      ...(meta.ogImage ? { images: [{ url: meta.ogImage }] } : {}),
+      url: canonicalUrl,
+      siteName: SITE_NAME,
+      locale: "en_US",
+      type: "website",
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: meta.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: meta.title,
+      description: meta.description || undefined,
+      images: [ogImageUrl],
     },
     verification: meta.googleSiteVerification
       ? {
