@@ -35,8 +35,15 @@ export async function PATCH(
       );
     }
 
-    const { title, meta_title, meta_description, meta_keywords, meta_og_image, meta_author } =
-      parsed.data;
+    const {
+      title,
+      meta_title,
+      meta_description,
+      meta_keywords,
+      meta_og_image,
+      meta_author,
+      google_site_verification,
+    } = parsed.data;
 
     if (
       title === undefined &&
@@ -44,7 +51,8 @@ export async function PATCH(
       meta_description === undefined &&
       meta_keywords === undefined &&
       meta_og_image === undefined &&
-      meta_author === undefined
+      meta_author === undefined &&
+      google_site_verification === undefined
     ) {
       return ApiResponse.error("No fields provided to update.", 400);
     }
@@ -68,12 +76,16 @@ export async function PATCH(
     if (meta_keywords !== undefined) page.meta_keywords = meta_keywords;
     if (meta_og_image !== undefined) page.meta_og_image = meta_og_image;
     if (meta_author !== undefined) page.meta_author = meta_author;
+    if (google_site_verification !== undefined) page.google_site_verification = google_site_verification;
 
     await page.save();
 
     try {
       revalidateTag(`page-meta-${pageName}`, "max");
       revalidateTag("page-meta", "max");
+      if (google_site_verification !== undefined) {
+        revalidateTag("site-google-verification", "max");
+      }
       if (sitePage.route) {
         revalidatePath(sitePage.route);
       }
@@ -89,6 +101,7 @@ export async function PATCH(
       meta_keywords: page.meta_keywords,
       meta_og_image: page.meta_og_image,
       meta_author: page.meta_author,
+      google_site_verification: page.google_site_verification || "",
     });
   } catch (error) {
     console.error("PATCH /control-panel/meta/:pageName failed:", error);

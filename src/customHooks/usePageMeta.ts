@@ -11,6 +11,7 @@ export interface PageMetaRecord {
   meta_keywords: string;
   meta_og_image: string;
   meta_author: string;
+  google_site_verification?: string;
 }
 
 export const PAGE_META_QUERY_KEY = ["page-meta"] as const;

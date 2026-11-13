@@ -30,6 +30,7 @@ export async function GET() {
         meta_keywords: stored?.meta_keywords ?? sitePage.defaultKeywords,
         meta_og_image: stored?.meta_og_image ?? "",
         meta_author: stored?.meta_author ?? "Najjar Furniture",
+        google_site_verification: stored?.google_site_verification ?? "",
       };
     });
 

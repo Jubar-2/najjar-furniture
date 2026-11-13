@@ -14,7 +14,6 @@ import {
     AlertCircle,
     Loader2,
     ChevronRight,
-    UserCog,
     Sparkles,
     ShieldAlert,
     Check,
@@ -31,10 +30,11 @@ import {
     useUpdateAdminPassword,
     getErrorMessage,
 } from "@/customHooks/useAdminAccount";
+import GoogleVerificationCard from "@/components/control-panel/meta/GoogleVerificationCard";
 
 export default function AccountSettingsPage() {
     const { data: session, update: updateSession } = useSession();
-    const { data: adminProfile, isLoading: isProfileLoading } = useGetAdminAccount();
+    const { data: adminProfile } = useGetAdminAccount();
 
     const updateEmailMutation = useUpdateAdminEmail();
     const updatePasswordMutation = useUpdateAdminPassword();
@@ -504,6 +504,19 @@ export default function AccountSettingsPage() {
                         </CardContent>
                     </Card>
 
+                </div>
+
+                {/* --- SEO Settings Section --- */}
+                <div className="space-y-3 pt-2">
+                    <div className="border-b border-slate-200/80 pb-2">
+                        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Search Engine Optimization (SEO) Settings
+                        </h2>
+                        <p className="text-xs text-slate-500">
+                            Configure site ownership verification for Google Search Console and webmaster indexing.
+                        </p>
+                    </div>
+                    <GoogleVerificationCard />
                 </div>
 
                 {/* --- Security Advice Card --- */}
